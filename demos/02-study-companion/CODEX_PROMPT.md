@@ -1,0 +1,11 @@
+# Study Companion next iteration
+
+Inspect the existing implementation and docs/STATUS.md first. Reuse rag_core, preserve the working offline baseline, and add tests for changes. The brief below is the target, not a claim that every feature is already shipped.
+
+Inspect the current repository and its instructions first. Implement the scoped prototype below, not just a plan. Reuse compatible code without overwriting unrelated work. If starting fresh, use Python with Streamlit for the local UI, SQLite for source metadata and FTS5 keyword search, and a configurable embedding adapter for semantic retrieval. Use current official package documentation and record tested dependency versions. Keep model/provider choices configurable; do not invent API methods or hard-code a paid model.
+
+Use synthetic or explicitly permitted sample data. Store document ID, chunk ID, source location, corpus version and content hash. Never commit keys or private data. Implement a real retrieval path. If no generation credentials are available, provide a clearly labelled source-search mode rather than pretend that canned text is an LLM response. Test doubles are for automated tests only. Include an .env.example, setup commands, sample questions and a README stating limitations. Run meaningful tests and report actual results, failures and commands. Do not fabricate benchmarks. Run locally; provide deployment instructions without publishing or creating paid resources.
+
+Build Study Companion as a separately runnable demo reusing the RAG core. Create a small permitted notes fixture with headings, definitions, examples and one important exception. Provide fixed-length and section-aware chunking modes. For small matches, allow controlled expansion to the parent section within a documented context budget.
+
+The UI should display an explanation, exact supporting sections and the original source. Support one follow-up by carrying the relevant question context into a new retrieval request; do not treat the previous generated answer as source evidence. Add a reset conversation button. Test a definition, comparison, ambiguous follow-up and absent topic. Save both chunking runs over the same eight questions, without inventing a winner. Include a manual check that the exception survives into the answer. Keep generated quizzes out of the required scope.

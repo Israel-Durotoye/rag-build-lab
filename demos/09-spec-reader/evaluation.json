@@ -1,0 +1,10 @@
+[
+  {
+    "question": "What is the capacity of cell A?",
+    "expected_source": "datasheet:table:0"
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence"
+  }
+]

@@ -1,0 +1,60 @@
+[
+  {
+    "id": "paper-a",
+    "title": "Synthetic paper A",
+    "version": "1",
+    "metadata": {
+      "dataset": "Alpha"
+    },
+    "sections": [
+      {
+        "id": "method",
+        "title": "Retrieval method",
+        "text": "The method uses keyword retrieval over synthetic control notes.",
+        "location": "method"
+      },
+      {
+        "id": "dataset",
+        "title": "Dataset",
+        "text": "The experiment uses the fictional Alpha dataset. The sample reports no latency measurement.",
+        "location": "dataset"
+      }
+    ]
+  },
+  {
+    "id": "paper-b",
+    "title": "Synthetic paper B",
+    "version": "1",
+    "metadata": {
+      "dataset": "Beta"
+    },
+    "sections": [
+      {
+        "id": "method",
+        "title": "Retrieval method",
+        "text": "The method uses hybrid retrieval and a reranker.",
+        "location": "method"
+      },
+      {
+        "id": "dataset",
+        "title": "Dataset",
+        "text": "The experiment uses the fictional Beta dataset under a different protocol. Numerical scores are not comparable to Alpha.",
+        "location": "dataset"
+      }
+    ]
+  },
+  {
+    "id": "paper-c",
+    "title": "Synthetic paper C",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "method",
+        "title": "Retrieval method",
+        "text": "This conceptual paper discusses document retrieval but reports no experiment.",
+        "location": "method"
+      }
+    ]
+  }
+]

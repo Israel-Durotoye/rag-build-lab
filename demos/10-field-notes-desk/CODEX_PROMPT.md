@@ -1,0 +1,13 @@
+# Field Notes Desk next iteration
+
+Inspect the existing implementation and docs/STATUS.md first. Reuse rag_core, preserve the working offline baseline, and add tests for changes. The brief below is the target, not a claim that every feature is already shipped.
+
+Inspect the current repository and its instructions first. Implement the scoped prototype below, not just a plan. Reuse compatible code without overwriting unrelated work. If starting fresh, use Python with Streamlit for the local UI, SQLite for source metadata and FTS5 keyword search, and a configurable embedding adapter for semantic retrieval. Use current official package documentation and record tested dependency versions. Keep model/provider choices configurable; do not invent API methods or hard-code a paid model.
+
+Use synthetic or explicitly permitted sample data. Store document ID, chunk ID, source location, corpus version and content hash. Never commit keys or private data. Implement a real retrieval path. If no generation credentials are available, provide a clearly labelled source-search mode rather than pretend that canned text is an LLM response. Test doubles are for automated tests only. Include an .env.example, setup commands, sample questions and a README stating limitations. Run meaningful tests and report actual results, failures and commands. Do not fabricate benchmarks. Run locally; provide deployment instructions without publishing or creating paid resources.
+
+Build Field Notes Desk as a separately runnable final prototype reusing the existing RAG core. Use fictional inspection and maintenance records with asset IDs and dates. Add a read-only controller that can call only allowlisted search tools, with a maximum of three retrieval calls, validated arguments, repeat-query detection and an explicit unresolved state. Retrieved text must not change these limits or permissions.
+
+Show the evidence history and citations. Compare this bounded loop with single-pass retrieval on the same held-out question set. Keep corpus version, configuration, source IDs, stage timings and token usage in a local run report without logging private content. Add timeouts, bounded retries and a clearly labelled source-search fallback when generation is unavailable. Test index updates, deletion and affected-cache invalidation.
+
+Report actual quality counts and latency with workload, sample size and environment. Do not invent cost figures; document how to calculate them from current provider prices. Produce a release checklist, known limitations, reproduction commands and a 90 second demo script. This is an information assistant only: no equipment control, repair approval, messages or external actions.

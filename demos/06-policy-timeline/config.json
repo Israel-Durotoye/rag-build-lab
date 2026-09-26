@@ -1,0 +1,12 @@
+{
+  "name": "Policy Timeline",
+  "kind": "policy",
+  "session": 18,
+  "sample_question": "How many days of annual leave?",
+  "default_options": {
+    "filters": {
+      "as_of": "2026-09-26"
+    }
+  },
+  "description": "Effective-date selection, version comparison, contextual follow-up and explicit update/delete commands. No real legal or employment advice."
+}

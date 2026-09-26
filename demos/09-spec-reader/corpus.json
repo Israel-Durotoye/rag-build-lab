@@ -1,0 +1,22 @@
+[
+  {
+    "id": "datasheet",
+    "title": "Synthetic specification sheet",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "table",
+        "title": "Capacity table",
+        "text": "Sample cell A has capacity 1200 mAh. Sample cell B has capacity 900 mAh. These values are synthetic and manually verified against page-1.svg.",
+        "location": "page-1.svg / capacity table"
+      },
+      {
+        "id": "diagram",
+        "title": "Diagram labels",
+        "text": "Page 2 shows input J1 connected to controller U1. Region X is intentionally unclear and has no verified label.",
+        "location": "page-2.svg / diagram"
+      }
+    ]
+  }
+]

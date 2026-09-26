@@ -1,0 +1,46 @@
+[
+  {
+    "id": "handbook",
+    "title": "Fictional student handbook",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "library",
+        "title": "Library hours",
+        "text": "The library opens at 08:00 and closes at 20:00 on weekdays. Weekend access ends at 16:00.",
+        "location": "library"
+      },
+      {
+        "id": "borrowing",
+        "title": "Borrowing books",
+        "text": "Students may borrow three books for fourteen days. Reference books cannot leave the library.",
+        "location": "borrowing"
+      },
+      {
+        "id": "lab",
+        "title": "Laboratory access",
+        "text": "The teaching laboratory requires an induction before access. Book a slot with the lab coordinator.",
+        "location": "lab"
+      },
+      {
+        "id": "registration",
+        "title": "Registration",
+        "text": "Course registration closes on the second Friday of the semester.",
+        "location": "registration"
+      },
+      {
+        "id": "housing",
+        "title": "Housing",
+        "text": "Housing requests use the residence portal. Accommodation is not guaranteed.",
+        "location": "housing"
+      },
+      {
+        "id": "support",
+        "title": "Student support",
+        "text": "The student support office accepts appointments from 10:00 to 14:00 on weekdays.",
+        "location": "support"
+      }
+    ]
+  }
+]

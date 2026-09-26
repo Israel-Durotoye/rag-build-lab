@@ -1,0 +1,30 @@
+[
+  {
+    "id": "sample-code",
+    "title": "Owned synthetic code snapshot",
+    "version": "1",
+    "metadata": {
+      "commit": "synthetic-v1"
+    },
+    "sections": [
+      {
+        "id": "retry",
+        "title": "Retry implementation",
+        "text": "def retry_limit():\n    # Fixed bounded retry budget\n    return 2",
+        "location": "src/settings.py:1-3"
+      },
+      {
+        "id": "cache",
+        "title": "Cache implementation",
+        "text": "def cache_key(user, version, query):\n    return (user, version, query)",
+        "location": "src/cache.py:1-2"
+      },
+      {
+        "id": "comment",
+        "title": "Misleading historical comment",
+        "text": "# Old comment says retries are unlimited.\n# The actual retry_limit implementation returns 2.",
+        "location": "src/legacy.py:1-2"
+      }
+    ]
+  }
+]

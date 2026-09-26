@@ -1,0 +1,42 @@
+{
+  "name": "Parts Map",
+  "kind": "graph",
+  "session": 24,
+  "sample_question": "Which part does assembly A use?",
+  "default_options": {},
+  "description": "Curated graph-assisted retrieval, a bounded two-hop traversal, source-backed edges and a passage-only baseline. This is not the full Microsoft GraphRAG pipeline.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "A",
+        "name": "A"
+      },
+      {
+        "id": "P1",
+        "name": "P1"
+      },
+      {
+        "id": "R1",
+        "name": "R1"
+      },
+      {
+        "id": "P2",
+        "name": "P2"
+      }
+    ],
+    "edges": [
+      {
+        "from": "A",
+        "to": "P1",
+        "relation": "uses",
+        "source": "catalogue:assembly:0"
+      },
+      {
+        "from": "P1",
+        "to": "R1",
+        "relation": "replacement",
+        "source": "catalogue:revision:0"
+      }
+    ]
+  }
+}

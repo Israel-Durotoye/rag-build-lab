@@ -1,0 +1,3 @@
+# Top-level versions actually used for the build checks, not a full transitive lock.
+streamlit==1.64.0
+pytest==9.1.1

@@ -1,0 +1,8 @@
+{
+  "name": "Campus Desk",
+  "kind": "campus",
+  "session": 3,
+  "sample_question": "When does the library close?",
+  "default_options": {},
+  "description": "One collection, one question box, an answer, source excerpts and an explicit insufficient-evidence state. No accounts, crawling or document management dashboard."
+}

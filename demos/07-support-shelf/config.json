@@ -1,0 +1,18 @@
+{
+  "name": "Support Shelf",
+  "kind": "support",
+  "session": 21,
+  "sample_question": "What is the returns window?",
+  "default_options": {
+    "identity": "alice"
+  },
+  "description": "Read-only answering with server-controlled identity fixtures, per-tenant retrieval and source access, isolated caches and a harmless injection test. Local demo until real authentication is implemented.",
+  "identities": {
+    "alice": [
+      "alpha"
+    ],
+    "bob": [
+      "beta"
+    ]
+  }
+}

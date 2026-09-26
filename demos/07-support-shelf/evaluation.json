@@ -1,0 +1,12 @@
+[
+  {
+    "question": "What is the returns window?",
+    "expected_source": "alpha-support:returns:0",
+    "identity": "alice"
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence",
+    "identity": "alice"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "inspection",
+    "title": "Fictional inspection record",
+    "version": "1",
+    "metadata": {
+      "followup_query": "WORK-12 maintenance"
+    },
+    "sections": [
+      {
+        "id": "asset",
+        "title": "Inspection finding",
+        "text": "Inspection for asset PUMP-7 refers to maintenance record WORK-12. The observed fictional symptom was vibration.",
+        "location": "asset"
+      }
+    ]
+  },
+  {
+    "id": "maintenance",
+    "title": "Fictional maintenance record",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "work",
+        "title": "Maintenance WORK-12",
+        "text": "WORK-12 records a fictional alignment inspection for asset PUMP-7. No repair approval is included.",
+        "location": "work"
+      }
+    ]
+  }
+]

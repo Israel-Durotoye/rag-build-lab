@@ -1,0 +1,10 @@
+[
+  {
+    "question": "Which part does assembly A use?",
+    "expected_source": "catalogue:assembly:0"
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence"
+  }
+]

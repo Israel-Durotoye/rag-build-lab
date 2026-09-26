@@ -1,0 +1,8 @@
+{
+  "name": "Paper Compare",
+  "kind": "paper",
+  "session": 15,
+  "sample_question": "What retrieval method is used?",
+  "default_options": {},
+  "description": "Choose two papers, ask one comparison question and receive fields with per-paper evidence and explicit gaps. No automatic quality leaderboard."
+}

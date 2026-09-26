@@ -1,0 +1,10 @@
+[
+  {
+    "question": "What was found during inspection of PUMP-7?",
+    "expected_source": "inspection:asset:0"
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "question": "What retrieval method is used?",
+    "expected_source": "paper-a:method:0"
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence"
+  }
+]

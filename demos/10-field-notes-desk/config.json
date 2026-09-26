@@ -1,0 +1,8 @@
+{
+  "name": "Field Notes Desk",
+  "kind": "agent",
+  "session": 30,
+  "sample_question": "What was found during inspection of PUMP-7?",
+  "default_options": {},
+  "description": "A bounded read-only search loop, evidence history, citations, explicit unresolved state and a release report. Reuse prior components; do not combine every optional feature."
+}

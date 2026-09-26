@@ -1,0 +1,20 @@
+[
+  {
+    "question": "What does E17 mean?",
+    "expected_source": "m1:e17:0",
+    "filters": {
+      "device": "M1"
+    }
+  },
+  {
+    "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence",
+    "filters": {
+      "device": "M1"
+    }
+  },
+  {
+    "question": "What does E17 mean?",
+    "expected_status": "clarification"
+  }
+]

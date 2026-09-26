@@ -1,0 +1,48 @@
+[
+  {
+    "id": "policy-v1",
+    "title": "Fictional leave policy 2025",
+    "version": "2025",
+    "metadata": {
+      "effective_from": "2025-01-01",
+      "effective_to": "2026-01-01"
+    },
+    "sections": [
+      {
+        "id": "leave",
+        "title": "Annual leave",
+        "text": "The fictional annual leave allowance is 15 days.",
+        "location": "leave"
+      },
+      {
+        "id": "notice",
+        "title": "Notice period",
+        "text": "Requests require five days of notice.",
+        "location": "notice"
+      }
+    ]
+  },
+  {
+    "id": "policy-v2",
+    "title": "Fictional leave policy 2026",
+    "version": "2026",
+    "metadata": {
+      "effective_from": "2026-02-01",
+      "effective_to": "2027-01-01"
+    },
+    "sections": [
+      {
+        "id": "leave",
+        "title": "Annual leave",
+        "text": "The fictional annual leave allowance is 20 days.",
+        "location": "leave"
+      },
+      {
+        "id": "notice",
+        "title": "Notice period",
+        "text": "Requests require five days of notice.",
+        "location": "notice"
+      }
+    ]
+  }
+]

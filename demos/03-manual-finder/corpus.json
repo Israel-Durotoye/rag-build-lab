@@ -1,0 +1,62 @@
+[
+  {
+    "id": "m1",
+    "title": "Fictional M1 manual",
+    "version": "1",
+    "metadata": {
+      "device": "M1"
+    },
+    "sections": [
+      {
+        "id": "e17",
+        "title": "M1 E17",
+        "text": "Device M1 revision A reports E17 when its fictional temperature sensor is disconnected. This is synthetic training material.",
+        "location": "e17"
+      },
+      {
+        "id": "supply",
+        "title": "M1 supply",
+        "text": "M1 uses a fictional 5 V supply.",
+        "location": "supply"
+      }
+    ]
+  },
+  {
+    "id": "m2",
+    "title": "Fictional M2 manual",
+    "version": "1",
+    "metadata": {
+      "device": "M2"
+    },
+    "sections": [
+      {
+        "id": "e17",
+        "title": "M2 E17",
+        "text": "Device M2 revision A reports E17 when its fictional fan is stalled.",
+        "location": "e17"
+      },
+      {
+        "id": "supply",
+        "title": "M2 supply",
+        "text": "M2 uses a fictional 12 V supply.",
+        "location": "supply"
+      }
+    ]
+  },
+  {
+    "id": "m3",
+    "title": "Fictional M3 manual",
+    "version": "1",
+    "metadata": {
+      "device": "M3"
+    },
+    "sections": [
+      {
+        "id": "e19",
+        "title": "M3 E19",
+        "text": "Device M3 reports E19 when a sample cable is absent. The example is not repair guidance.",
+        "location": "e19"
+      }
+    ]
+  }
+]

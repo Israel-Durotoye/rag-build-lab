@@ -1,0 +1,8 @@
+{
+  "name": "Study Companion",
+  "kind": "study",
+  "session": 6,
+  "sample_question": "Does negative feedback guarantee stability?",
+  "default_options": {},
+  "description": "Section-aware retrieval, source expansion, a short explanation and one contextual follow-up. Keep the original notes available. Quiz mode is optional."
+}

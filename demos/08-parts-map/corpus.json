@@ -1,0 +1,28 @@
+[
+  {
+    "id": "catalogue",
+    "title": "Fictional parts catalogue",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "assembly",
+        "title": "Assembly uses",
+        "text": "Assembly A uses part P1.",
+        "location": "assembly"
+      },
+      {
+        "id": "revision",
+        "title": "Replacement relation",
+        "text": "Part P1 has a documented fictional replacement R1.",
+        "location": "revision"
+      },
+      {
+        "id": "unknown",
+        "title": "Unknown part",
+        "text": "Part P2 has no documented replacement in this catalogue.",
+        "location": "unknown"
+      }
+    ]
+  }
+]

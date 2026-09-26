@@ -1,0 +1,12 @@
+{
+  "name": "Manual Finder",
+  "kind": "manual",
+  "session": 9,
+  "sample_question": "What does E17 mean?",
+  "default_options": {
+    "filters": {
+      "device": "M1"
+    }
+  },
+  "description": "Device selector, keyword and dense retrieval, rank fusion and clarification when device identity matters. Informational lookup only."
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Repo Guide",
+  "kind": "repo",
+  "session": 12,
+  "sample_question": "What is the retry limit?",
+  "default_options": {},
+  "description": "Read-only indexing of code and documentation, file and line references, optional reranking and an evidence browser. No code execution or autonomous modifications."
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "controls",
+    "title": "Synthetic control notes",
+    "version": "1",
+    "metadata": {},
+    "sections": [
+      {
+        "id": "feedback",
+        "title": "Negative feedback",
+        "text": "Negative feedback subtracts the measured output from the reference to form an error signal. Stability still depends on the plant and controller; negative feedback does not guarantee stability.",
+        "location": "feedback"
+      },
+      {
+        "id": "gain",
+        "title": "Proportional gain",
+        "text": "A proportional controller multiplies error by gain Kp. Increasing gain can reduce steady-state error but may increase overshoot.",
+        "location": "gain"
+      },
+      {
+        "id": "integral",
+        "title": "Integral control",
+        "text": "Integral action accumulates error over time. Actuator saturation can cause windup unless anti-windup is used.",
+        "location": "integral"
+      },
+      {
+        "id": "derivative",
+        "title": "Derivative action",
+        "text": "Derivative action responds to the rate of error change. It is sensitive to measurement noise.",
+        "location": "derivative"
+      }
+    ]
+  }
+]

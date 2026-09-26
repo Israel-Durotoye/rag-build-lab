@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "rag-build-lab"
+version = "0.1.0"
+description = "Reusable evidence-first RAG core and ten independent learning demos"
+requires-python = ">=3.11"
+dependencies = []
+[project.optional-dependencies]
+ui = ["streamlit>=1.40,<2"]
+semantic = ["sentence-transformers>=3,<6"]
+test = ["pytest>=8,<10"]
+[project.scripts]
+rag-lab = "rag_core.cli:main"
+[tool.setuptools.packages.find]
+include = ["rag_core*"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

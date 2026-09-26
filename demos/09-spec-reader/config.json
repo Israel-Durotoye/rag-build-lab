@@ -1,0 +1,46 @@
+{
+  "name": "Spec Reader",
+  "kind": "spec",
+  "session": 27,
+  "sample_question": "What is the capacity of cell A?",
+  "default_options": {},
+  "description": "Page retrieval and inspection, a documented OCR or visual route, table source references and one deterministic unit-aware calculation. No arbitrary formula execution.",
+  "cells": {
+    "A": {
+      "value": 1200,
+      "unit": "mAh",
+      "verified": true,
+      "source": "datasheet:table:0",
+      "page": "page-1.svg",
+      "row": "A",
+      "column": "capacity"
+    },
+    "B": {
+      "value": 900,
+      "unit": "mAh",
+      "verified": true,
+      "source": "datasheet:table:0",
+      "page": "page-1.svg",
+      "row": "B",
+      "column": "capacity"
+    },
+    "C": {
+      "value": null,
+      "unit": "mAh",
+      "verified": false,
+      "source": "datasheet:table:0",
+      "page": "page-1.svg",
+      "row": "C",
+      "column": "capacity"
+    },
+    "D": {
+      "value": 5,
+      "unit": "V",
+      "verified": true,
+      "source": "datasheet:table:0",
+      "page": "page-1.svg",
+      "row": "D",
+      "column": "capacity"
+    }
+  }
+}
