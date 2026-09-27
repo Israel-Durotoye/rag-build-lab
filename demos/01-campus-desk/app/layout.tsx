@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 // Self-hosted at build time by next/font: no runtime requests, no layout shift.
@@ -9,29 +9,21 @@ const inter = Inter({
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz"],
-  variable: "--font-display",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Campus Desk — Your handbook, at hand",
+  title: "Campus Desk — Ask your document",
   description:
-    "Search the FUT Minna Mechatronics Engineering students' handbook — or add your own school's — with original passages and clear sources.",
+    "Add a PDF or Word document and ask it questions. Answers come only from the file itself, with the exact passages cited.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f6ef",
+  themeColor: "#101314",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

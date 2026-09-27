@@ -1,4 +1,3 @@
-import { handbook } from "@/lib/handbook";
 import { ask } from "@/lib/pipeline";
 import { capabilities, providers } from "@/lib/providers";
 import { ingest, type Corpus } from "@/lib/retrieval";
@@ -93,18 +92,19 @@ export async function POST(request: Request) {
     !capabilities().modes.includes(mode as RetrievalMode)
   )
     return failure("This retrieval mode is not available.", 400);
-  // Default: the bundled handbook. With documents: the sender's own school
-  // knowledge base, validated and indexed for this request only.
-  let corpus = handbook;
-  if (input.documents !== undefined) {
-    try {
-      corpus = corpusForDocuments(input.documents);
-    } catch (cause) {
-      return failure(
-        cause instanceof Error ? cause.message : "Invalid knowledge base.",
-        400,
-      );
-    }
+  // The knowledge base always travels with the request: the browser holds the
+  // uploaded document, the server validates and indexes it per request, and
+  // nothing is stored server-side.
+  if (input.documents === undefined)
+    return failure("Add a PDF or Word document before asking questions.", 400);
+  let corpus: Corpus;
+  try {
+    corpus = corpusForDocuments(input.documents);
+  } catch (cause) {
+    return failure(
+      cause instanceof Error ? cause.message : "Invalid knowledge base.",
+      400,
+    );
   }
   try {
     const result = await ask(corpus, input.question, {

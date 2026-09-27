@@ -6,14 +6,16 @@ backend live here. See the [web setup and Vercel guide](WEB_README.md).
 The Python/Streamlit commands below remain available as the original baseline.
 The evaluation questions and answer-support checklist apply to both versions.
 
-A handbook search app over the official **Students' Handbook 2021–2025 of the
-Department of Mechatronics Engineering, Federal University of Technology,
-Minna** (57 transcribed sections in `corpus.json`). The default is real
-SQLite FTS5 retrieval with source excerpts, **not generated answers**. Read the
-handbook inside the app; selected passages appear beside the result.
-`manifest.json` records the corpus provenance. On the website, the **Your
-school** page (`/school`) lets a student at another university add their own
-handbook; it is stored in that browser and searched instead of the default.
+Two related apps share this folder. The **website** demonstrates how RAG works
+end to end: the visitor adds their own PDF or Word document in the browser
+(text extraction plus OCR for scanned pages), the server retrieves matching
+passages per request, and a DeepSeek model — when configured — writes answers
+that must cite those passages. The **Python/Streamlit baseline** below searches
+the official **Students' Handbook 2021–2025 of the Department of Mechatronics
+Engineering, Federal University of Technology, Minna** (57 transcribed sections
+in `corpus.json`, provenance in `manifest.json`) with real SQLite FTS5
+retrieval and source excerpts, **not generated answers**. The web app keeps
+that corpus only as its test and evaluation fixture.
 
 ## Setup and run
 
@@ -137,8 +139,9 @@ python -m pip check
 See [RUN_RESULTS.md](RUN_RESULTS.md) for actual local results and tested versions.
 The UI defaults to an in-memory index; the CLI accepts `--db .state/campus.sqlite`
 before `ask` to persist metadata and FTS5. Reindex after changing fixture files.
-There is no upload/PDF parser, production authentication, answer cache or
-calibrated semantic answerability threshold. Keyword matching can miss paraphrases
+The Python baseline has no upload/PDF parser (the website does), and neither
+version has production authentication, an answer cache or a calibrated
+semantic answerability threshold. Keyword matching can miss paraphrases
 and return irrelevant passages. Dense retrieval also needs relevance evaluation.
 
 ## Deployment instructions (not deployed)

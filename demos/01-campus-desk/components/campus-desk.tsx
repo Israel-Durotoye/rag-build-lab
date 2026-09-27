@@ -1,760 +1,998 @@
 "use client";
 
-import Link from "next/link";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
-import {
-  ArrowDown,
+  AlertTriangle,
+  ArrowDownToLine,
   ArrowRight,
-  BookOpen,
+  ArrowUp,
+  ArrowUpRight,
+  BookOpenText,
   Check,
   ChevronRight,
   Clock3,
   Copy,
-  ExternalLink,
   FileText,
-  GraduationCap,
-  LibraryBig,
-  RotateCcw,
-  School,
+  FolderOpen,
+  GitBranch,
+  Layers3,
+  Loader2,
+  Mail,
+  MessageSquareText,
+  PanelRight,
+  Plus,
   Search,
   ShieldCheck,
-  Sparkles,
+  Trash2,
+  Upload,
   X,
 } from "lucide-react";
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { extractFile, type ExtractProgress } from "@/lib/extract";
 import {
+  clearCustomSchool,
   getKbSnapshot,
   getServerKbSnapshot,
+  saveCustomSchool,
   sectionsFromDocuments,
+  setActiveKb,
   subscribeKb,
 } from "@/lib/school";
-import type {
-  Capabilities,
-  RetrievalMode,
-  SearchResult,
-  Source,
-} from "@/lib/types";
+import type { SearchResult, Source } from "@/lib/types";
+import { AnswerPanel } from "./answer-panel";
+import { WorkspaceFlow } from "./workspace-flow";
 
-export interface SchoolInfo {
-  name: string;
-  shortName: string;
-  department: string;
-  documentTitle: string;
-  version: string;
+type View = "workspace" | "documents" | "activity" | "guide";
+const NAV = [
+  { id: "workspace", label: "Workspace", icon: MessageSquareText },
+  { id: "documents", label: "Documents", icon: FolderOpen },
+  { id: "activity", label: "Recent questions", icon: Clock3 },
+  { id: "guide", label: "How it works", icon: GitBranch },
+] as const;
+const STAGES: Record<ExtractProgress["stage"], string> = {
+  reading: "Reading your file",
+  text: "Extracting the text",
+  ocr: "Reading scanned pages with OCR",
+  sections: "Preparing searchable sections",
+};
+
+function ExtractionSteps({ progress }: { progress: ExtractProgress }) {
+  return (
+    <div className="extraction-progress" role="status">
+      <Loader2 size={22} className="spin" />
+      <strong>{STAGES[progress.stage]}</strong>
+      <span>
+        {progress.total
+          ? `${progress.done ?? 0} of ${progress.total} pages`
+          : "This can take a moment for larger files."}
+      </span>
+      {progress.total && (
+        <progress
+          value={progress.done ?? 0}
+          max={progress.total}
+          aria-label="Document extraction progress"
+        />
+      )}
+    </div>
+  );
 }
 
-const DEFAULT_SUGGESTIONS = [
-  "What CGPA do I need for a First Class?",
-  "What are the requirements to proceed to 200 Level?",
-  "How many weeks is SIWES II?",
-];
-
-const DEFAULT_TOPICS = [
-  {
-    icon: <BookOpen />,
-    title: "Admission & entry",
-    description: "UTME and Direct Entry requirements, O'Level subjects and transfers.",
-    query: "What are the UTME admission requirements?",
-    label: "Explore admission",
-  },
-  {
-    icon: <GraduationCap />,
-    title: "Grades & graduation",
-    description: "The grading system, CGPA computation and classes of degree.",
-    query: "How is the CGPA calculated?",
-    label: "Explore grading",
-  },
-  {
-    icon: <FileText />,
-    title: "Rules & training",
-    description: "Examination regulations, SWEP and SIWES industrial training.",
-    query: "How many weeks is SIWES II?",
-    label: "Explore regulations",
-  },
-];
-
-const SIDEBAR_SECTION_LIMIT = 9;
-
 export default function CampusDesk({
-  sections,
-  corpusVersion,
-  capabilities,
-  school,
+  generation,
+  model,
 }: {
-  sections: Source[];
-  corpusVersion: string;
-  capabilities: Capabilities;
-  school: SchoolInfo;
+  generation: boolean;
+  model: string;
 }) {
+  const kb = useSyncExternalStore(
+    subscribeKb,
+    getKbSnapshot,
+    getServerKbSnapshot,
+  );
+  const doc = kb.school;
+  const fileRef = useRef<HTMLInputElement>(null);
+  const sourcePanelRef = useRef<HTMLElement>(null);
+  const questionRef = useRef<HTMLTextAreaElement>(null);
+  const [view, setView] = useState<View>("workspace");
+  const [progress, setProgress] = useState<ExtractProgress | null>(null);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [question, setQuestion] = useState("");
+  const [lastQuestion, setLastQuestion] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [askError, setAskError] = useState<string | null>(null);
   const [result, setResult] = useState<SearchResult | null>(null);
-  const [previousQuestion, setPreviousQuestion] = useState<string>();
-  const [mode, setMode] = useState<RetrievalMode>("keyword");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [history, setHistory] = useState<SearchResult[]>([]);
+  const [filter, setFilter] = useState("");
   const [selectedSource, setSelectedSource] = useState<Source | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  // The active knowledge base lives in this browser only.
-  const kb = useSyncExternalStore(subscribeKb, getKbSnapshot, getServerKbSnapshot);
-  const custom = kb.active === "custom" ? kb.school : null;
-  const dialog = useRef<HTMLDialogElement>(null);
-  const input = useRef<HTMLTextAreaElement>(null);
-  const controller = useRef<AbortController | null>(null);
-  const requestId = useRef(0);
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      controller.current?.abort();
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-    },
-    [],
+  const [copyError, setCopyError] = useState(false);
+  const busy = asking || !!progress;
+  const sections = doc ? sectionsFromDocuments(doc.documents) : [];
+  const filtered = sections.filter((source) =>
+    `${source.title} ${source.text} ${source.location}`
+      .toLowerCase()
+      .includes(filter.toLowerCase()),
   );
+  const first = doc?.documents[0];
+  const meta = first?.metadata ?? {};
+  const format =
+    meta.format === "pdf"
+      ? "PDF"
+      : meta.format === "word"
+        ? "Word"
+        : meta.format === "text"
+          ? "Text"
+          : "Document";
 
-  const activeSections = useMemo(
-    () => (custom ? sectionsFromDocuments(custom.documents) : sections),
-    [custom, sections],
-  );
-  const schoolName = custom ? custom.name : school.name;
-  const handbookTitle = custom ? custom.documents[0].title : school.documentTitle;
-  const handbookVersion = custom ? custom.documents[0].version : school.version;
-  const suggestions = custom
-    ? activeSections
-        .slice(0, 3)
-        .map((section) => `What does the handbook say about ${section.title}?`)
-    : DEFAULT_SUGGESTIONS;
-  const topics = custom
-    ? activeSections.slice(0, 3).map((section) => ({
-        icon: <BookOpen />,
-        title: section.title,
-        description: `${section.text.slice(0, 88).trimEnd()}…`,
-        query: `What does the handbook say about ${section.title}?`,
-        label: "Ask about this",
-      }))
-    : DEFAULT_TOPICS;
-
-  function openHandbook(source?: Source) {
-    setSelectedSource(source ?? null);
-    setCopied(false);
-    dialog.current?.showModal();
+  function navigate(next: View) {
+    setView(next);
+    setPanelOpen(false);
+    window.scrollTo({ top: 0 });
   }
-
-  function reset() {
-    requestId.current++;
-    controller.current?.abort();
+  function newQuestion() {
+    if (busy) return;
     setQuestion("");
+    setLastQuestion(null);
     setResult(null);
-    setError("");
-    setPreviousQuestion(undefined);
-    setLoading(false);
-    input.current?.focus();
+    setAskError(null);
+    setSelectedSource(null);
+    navigate("workspace");
+    requestAnimationFrame(() => questionRef.current?.focus());
   }
-
-  async function submit(value: string) {
-    const query = value.trim();
-    if (!query) {
-      input.current?.focus();
-      return;
+  function openSource(source: Source) {
+    setSelectedSource(source);
+    setPanelOpen(true);
+    setCopied(false);
+    setCopyError(false);
+    requestAnimationFrame(() => {
+      sourcePanelRef.current?.focus({ preventScroll: true });
+      if (window.innerWidth <= 1050)
+        sourcePanelRef.current?.scrollIntoView({ block: "start" });
+    });
+  }
+  function restore(item: SearchResult) {
+    if (busy) return;
+    setResult(item);
+    setQuestion("");
+    setLastQuestion(item.question);
+    setSelectedSource(null);
+    setAskError(null);
+    navigate("workspace");
+  }
+  async function copySource() {
+    if (!selectedSource) return;
+    try {
+      await navigator.clipboard.writeText(
+        `${selectedSource.citationLabel}\n\n${selectedSource.text}`,
+      );
+      setCopied(true);
+      setCopyError(false);
+    } catch {
+      setCopyError(true);
     }
-    const id = ++requestId.current;
-    controller.current?.abort();
-    const abort = new AbortController();
-    controller.current = abort;
-    const timeout = setTimeout(() => abort.abort(), 55000);
-    setQuestion(value);
-    setLoading(true);
-    setError("");
-    setResult(null);
+  }
+  async function handleFile(file: File | undefined) {
+    if (!file || busy) return;
+    setExtractError(null);
+    setProgress({ stage: "reading" });
+    setView("workspace");
+    try {
+      const extracted = await extractFile(file, setProgress);
+      saveCustomSchool({
+        name: extracted.name,
+        savedAt: new Date().toISOString(),
+        documents: extracted.documents,
+      });
+      setActiveKb("custom");
+      setQuestion("");
+      setLastQuestion(null);
+      setResult(null);
+      setHistory([]);
+      setAskError(null);
+      setSelectedSource(null);
+      setFilter("");
+    } catch (cause) {
+      setExtractError(
+        cause instanceof Error ? cause.message : "This file could not be read.",
+      );
+    } finally {
+      setProgress(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+  function removeDoc() {
+    if (busy) return;
+    clearCustomSchool();
+    setHistory([]);
+    setSelectedSource(null);
+    setExtractError(null);
+    setFilter("");
+    newQuestion();
+  }
+  async function onAsk(event: FormEvent) {
+    event.preventDefault();
+    const asked = question.trim();
+    if (!asked || !doc || busy) return;
+    setAsking(true);
+    setAskError(null);
     try {
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: query,
-          mode,
-          previousQuestion,
-          ...(custom ? { documents: custom.documents } : {}),
+          question: asked,
+          documents: doc.documents,
+          ...(lastQuestion ? { previousQuestion: lastQuestion } : {}),
         }),
-        signal: abort.signal,
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          data.error || "Search couldn’t finish. Please try again.",
-        );
-      if (id !== requestId.current) return;
-      setResult(data as SearchResult);
-      if (data.status !== "clarification")
-        setPreviousQuestion(data.retrievalQuery);
+      const body = (await response.json().catch(() => null)) as
+        (SearchResult & { error?: string }) | null;
+      if (!response.ok || !body)
+        throw new Error(body?.error || "Search failed. Try again.");
+      setResult(body);
+      setLastQuestion(asked);
+      setQuestion("");
+      setSelectedSource(null);
+      setHistory((previous) => [body, ...previous].slice(0, 20));
     } catch (cause) {
-      if (id !== requestId.current) return;
-      setError(
-        abort.signal.aborted
-          ? "Search took too long. Please try again."
-          : cause instanceof Error
-            ? cause.message
-            : "Couldn’t reach Campus Desk. Check your connection and try again.",
+      setAskError(
+        cause instanceof Error ? cause.message : "Search failed. Try again.",
       );
     } finally {
-      clearTimeout(timeout);
-      if (id === requestId.current) setLoading(false);
+      setAsking(false);
     }
   }
 
-  async function copySource(source: Source) {
-    try {
-      await navigator.clipboard.writeText(
-        `${source.text}\n\n${source.citationLabel}\nSource ID: ${source.id}`,
-      );
-      setCopied(true);
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    void submit(question);
-  };
-  const hasSources = !!result?.sources.length;
-  const noEvidence = result?.status === "insufficient_evidence";
+  const upload = (
+    <div
+      className="upload-zone"
+      data-drag={dragging || undefined}
+      aria-busy={!!progress}
+      onDragOver={(event) => {
+        event.preventDefault();
+        if (!busy) setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        void handleFile(event.dataTransfer.files[0]);
+      }}
+    >
+      {progress ? (
+        <ExtractionSteps progress={progress} />
+      ) : (
+        <>
+          <span className="upload-illustration">
+            <FileText size={29} strokeWidth={1.25} />
+            <span>
+              <Plus size={13} />
+            </span>
+          </span>
+          <h2>
+            {doc
+              ? "Replace your document"
+              : "Bring your document. We’ll help you find the answer."}
+          </h2>
+          <p>Drop it here, or choose a file from your computer.</p>
+          <button
+            className="primary-button"
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+          >
+            <Upload size={15} />
+            Choose a document
+            <ArrowUpRight size={14} />
+          </button>
+          <div className="file-types">
+            <span>PDF</span>
+            <span>DOCX</span>
+            <span>TXT</span>
+            <span>MD</span>
+            <small>Scanned PDFs supported with OCR</small>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main">
-        Skip to search
+      <a className="skip-link" href="#main-content">
+        Skip to workspace
       </a>
-      <aside className="sidebar">
-        <Link
+      <input
+        ref={fileRef}
+        id="doc-file"
+        type="file"
+        accept=".pdf,.docx,.txt,.md"
+        onChange={(event) => void handleFile(event.target.files?.[0])}
+        disabled={busy}
+        hidden
+      />
+      <aside className="sidebar" aria-label="Workspace navigation">
+        <button
+          type="button"
+          onClick={() => navigate("workspace")}
           className="brand"
-          href="/"
-          onClick={reset}
-          aria-label="Campus Desk home"
+          aria-label="Campus Desk workspace"
         >
           <span className="brand-mark">
-            <BookOpen size={23} strokeWidth={1.7} />
+            <BookOpenText size={21} />
           </span>
           <span>
-            campus<span className="brand-light">desk</span>
-            <small>RAG BUILD LAB</small>
+            Campus<span className="brand-light">Desk</span>
+            <small>YOUR DOCUMENT WORKSPACE</small>
           </span>
-        </Link>
-        <div className="workspace-label">YOUR WORKSPACE</div>
-        <button className="nav-active" onClick={() => input.current?.focus()}>
-          <Search size={18} /> Ask the handbook <span className="nav-dot" />
         </button>
-        <button className="nav-link" onClick={() => openHandbook()}>
-          <LibraryBig size={18} /> Browse handbook <ChevronRight size={15} />
+        <button className="new-question" onClick={newQuestion} disabled={busy}>
+          <Plus size={16} />
+          New question<kbd>＋</kbd>
         </button>
-        <Link className="nav-link" href="/school">
-          <School size={18} /> Your school <ChevronRight size={15} />
-        </Link>
-        <div className="sidebar-divider" />
-        <div className="section-label">
-          IN THE HANDBOOK{" "}
-          <span>{activeSections.length.toString().padStart(2, "0")}</span>
-        </div>
-        <nav aria-label="Handbook sections" className="section-nav">
-          {activeSections.slice(0, SIDEBAR_SECTION_LIMIT).map((section, index) => (
-            <button key={section.id} onClick={() => openHandbook(section)}>
-              <span>{(index + 1).toString().padStart(2, "0")}</span>
-              {section.title}
-              <ChevronRight size={14} />
-            </button>
-          ))}
-          {activeSections.length > SIDEBAR_SECTION_LIMIT ? (
-            <button className="section-more" onClick={() => openHandbook()}>
-              <span>+</span>
-              All {activeSections.length} sections
-              <ChevronRight size={14} />
-            </button>
-          ) : null}
-        </nav>
-        <div className="sidebar-note">
-          <div className="note-icon">
-            <GraduationCap size={22} />
-          </div>
-          <h3>A little clarity for campus life.</h3>
-          <p>Find the detail you need. See exactly where it came from.</p>
-          <button onClick={() => openHandbook()}>
-            Explore the handbook <ArrowRight size={15} />
-          </button>
-        </div>
-        <div className="sidebar-bottom">
-          <span className="status-dot" />
-          <span className="kb-name">
-            {custom ? custom.name : school.shortName}
-          </span>{" "}
-          <span>v{handbookVersion}</span>
-        </div>
-      </aside>
-
-      <div className="main-shell">
-        <header className="topbar">
-          <div>
-            <span className="breadcrumb">{schoolName}</span>
-            <ChevronRight size={13} />
-            <span>Campus Desk</span>
-          </div>
-          <Link className="school-badge" href="/school">
-            <ShieldCheck size={14} />
-            <span className="badge-label">
-              {custom ? "Your school’s handbook" : "Official student handbook"}
-            </span>
-          </Link>
-        </header>
-        <main id="main" className="main-content">
-          <div className="intro-top">
-            <span className="eyebrow">
-              <span /> YOUR CAMPUS COMPANION
-            </span>
-            <button className="text-button reset-button" onClick={reset}>
-              <RotateCcw size={14} /> New search
-            </button>
-          </div>
-          <h1>
-            Your handbook.
-            <br />
-            <span>A little easier to navigate.</span>
-          </h1>
-          <p className="intro-description">
-            {custom
-              ? `Searching “${handbookTitle}” for ${custom.name}.`
-              : "From admission and course structure to SIWES and your final-year project."}
-            <br className="mobile-break" /> Ask a question, and go straight to
-            the source.
-          </p>
-
-          <section className="search-box" aria-label="Ask the handbook">
-            <form onSubmit={handleSubmit}>
-              <label className="search-label" htmlFor="question">
-                <Search size={18} /> What would you like to know?
-              </label>
-              <textarea
-                id="question"
-                ref={input}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                maxLength={4000}
-                rows={2}
-                placeholder="e.g. What CGPA do I need for a First Class?"
-                aria-describedby="search-help"
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !event.shiftKey &&
-                    !event.nativeEvent.isComposing
-                  ) {
-                    event.preventDefault();
-                    if (!loading) void submit(question);
-                  }
-                }}
-              />
-              <div className="search-bottom">
-                <span id="search-help">
-                  <span className="status-dot" />{" "}
-                  {capabilities.generation
-                    ? "Model answers with cited evidence"
-                    : "Source search · No generated answers"}
-                </span>
-                <button
-                  className="primary-button"
-                  disabled={loading || !question.trim()}
-                  type="submit"
-                >
-                  {loading ? "Searching…" : "Search handbook"}
-                  <ArrowRight size={17} />
-                </button>
-              </div>
-              {capabilities.modes.length > 1 ? (
-                <div className="mode-picker">
-                  <label htmlFor="retrieval-mode">Retrieval method</label>
-                  <select
-                    id="retrieval-mode"
-                    value={mode}
-                    onChange={(event) => {
-                      requestId.current++;
-                      controller.current?.abort();
-                      setLoading(false);
-                      setMode(event.target.value as RetrievalMode);
-                      setResult(null);
-                      setError("");
-                    }}
-                  >
-                    {capabilities.modes.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
-            </form>
-          </section>
-          <div className="suggestions">
-            <span>TRY ASKING</span>
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion}
-                disabled={loading}
-                onClick={() => void submit(suggestion)}
-              >
-                {suggestion}
-                <ArrowRight size={13} />
-              </button>
-            ))}
-          </div>
-
-          <div aria-live="polite" aria-busy={loading}>
-            {error ? (
-              <div className="error-notice" role="alert">
-                <strong>We couldn’t complete that search.</strong>
-                <p>{error}</p>
-                <button
-                  className="text-button"
-                  onClick={() => void submit(question)}
-                >
-                  Try again <ArrowRight size={14} />
-                </button>
-              </div>
-            ) : null}
-            {loading ? (
-              <div className="loading-state">
-                <span className="spinner" />
-                <div>
-                  <strong>Looking through the handbook</strong>
-                  <p>Finding passages for your question…</p>
-                </div>
-              </div>
-            ) : null}
-            {result ? (
-              <section className="results-section" aria-label="Search results">
-                <div className="results-heading">
-                  <h2>
-                    {result.mode === "generated"
-                      ? "Your answer & its sources"
-                      : "Here’s what we found"}
-                  </h2>
-                  <span>
-                    <Clock3 size={13} /> {result.elapsedMs} ms
-                  </span>
-                </div>
-                <div className="results-grid">
-                  <div
-                    className={`result-summary ${noEvidence ? "insufficient" : ""}`}
-                  >
-                    <span className="eyebrow">
-                      {result.mode === "generated"
-                        ? "CITED ANSWER"
-                        : "SEARCH RESULT"}
-                    </span>
-                    <div className="summary-icon">
-                      {noEvidence ? (
-                        <Search size={23} />
-                      ) : result.mode === "generated" ? (
-                        <Sparkles size={23} />
-                      ) : (
-                        <BookOpen size={23} />
-                      )}
-                    </div>
-                    <h3>
-                      {noEvidence
-                        ? "Not enough evidence."
-                        : result.status === "clarification"
-                          ? "A little more context?"
-                          : result.status === "generation_unavailable"
-                            ? "Your sources are still here."
-                            : result.mode === "generated"
-                              ? "Grounded in the handbook."
-                              : `${result.sources.length} ${result.sources.length === 1 ? "passage" : "passages"} to explore.`}
-                    </h3>
-                    <p className="submitted-question">“{result.question}”</p>
-                    {result.answer ? (
-                      <p className="generated-answer">{result.answer}</p>
-                    ) : null}
-                    <p>{result.notice}</p>
-                    {result.citations.length ? (
-                      <div className="citation-list">
-                        {result.citations.map((id) => {
-                          const source = result.sources.find(
-                            (item) => item.id === id,
-                          );
-                          return source ? (
-                            <button
-                              key={id}
-                              onClick={() => openHandbook(source)}
-                            >
-                              <FileText size={14} />
-                              {source.title}
-                              <ExternalLink size={12} />
-                            </button>
-                          ) : null;
-                        })}
-                      </div>
-                    ) : null}
-                    {!hasSources ? (
-                      <button
-                        className="text-button"
-                        onClick={() => openHandbook()}
-                      >
-                        Browse the handbook <ArrowRight size={15} />
-                      </button>
-                    ) : (
-                      <div className="evidence-note">
-                        <ShieldCheck size={17} />
-                        <span>
-                          A matching passage isn’t always a complete answer.
-                          Read the original wording.
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="sources-panel">
-                    <div className="sources-label">
-                      <span>SELECTED PASSAGES</span>
-                      <span>
-                        {result.sources.length.toString().padStart(2, "0")}
-                      </span>
-                    </div>
-                    {hasSources ? (
-                      result.sources.map((source, index) => (
-                        <article className="source-card" key={source.id}>
-                          <div className="source-card-top">
-                            <span className="source-number">
-                              {(index + 1).toString().padStart(2, "0")}
-                            </span>
-                            <span>STUDENT HANDBOOK</span>
-                            <span>v{source.version}</span>
-                          </div>
-                          <h3>{source.title}</h3>
-                          <p>{source.text}</p>
-                          <div className="source-card-bottom">
-                            <span>
-                              <FileText size={13} /> § {source.section}
-                            </span>
-                            <button onClick={() => openHandbook(source)}>
-                              View source <ArrowRight size={14} />
-                            </button>
-                          </div>
-                        </article>
-                      ))
-                    ) : (
-                      <div className="empty-sources">
-                        <FileText size={30} strokeWidth={1.3} />
-                        <p>No supporting passage selected.</p>
-                        <small>
-                          {custom
-                            ? "Try one of the section titles from your handbook."
-                            : "Try admission, CGPA and grading, SIWES, course registration, or examination rules."}
-                        </small>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <details className="retrieval-details">
-                  <summary>
-                    Behind this search <ArrowDown size={13} />
-                  </summary>
-                  <dl>
-                    <div>
-                      <dt>Method</dt>
-                      <dd>
-                        {result.retrievalMode === "keyword"
-                          ? "BM25 keyword search"
-                          : result.retrievalMode}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>{result.status}</dd>
-                    </div>
-                    <div>
-                      <dt>Search query</dt>
-                      <dd>{result.retrievalQuery}</dd>
-                    </div>
-                    <div>
-                      <dt>Knowledge base</dt>
-                      <dd>
-                        {custom
-                          ? `${custom.name} (added on this device)`
-                          : `${school.name} (default)`}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Corpus revision</dt>
-                      <dd>{result.corpusVersion}</dd>
-                    </div>
-                  </dl>
-                </details>
-              </section>
-            ) : !loading && !error ? (
-              <section className="start-section">
-                <div className="section-heading">
-                  <h2>Good questions start here.</h2>
-                  <span>One handbook. Original sources.</span>
-                </div>
-                <div className="topic-grid">
-                  {topics.map((topic) => (
-                    <button
-                      className="topic-card"
-                      key={topic.title}
-                      onClick={() => void submit(topic.query)}
-                    >
-                      <span className="topic-icon">{topic.icon}</span>
-                      <h3>{topic.title}</h3>
-                      <p>{topic.description}</p>
-                      <span className="topic-link">
-                        {topic.label}
-                        <ArrowRight size={15} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-          </div>
-          <footer className="page-footer">
-            <span>
-              <ShieldCheck size={15} /> Clear sources. Honest limits.
-            </span>
-            <p>
-              Every result points back to the exact handbook passage it came
-              from.
-            </p>
-            <button onClick={() => openHandbook()}>
-              About this collection <ExternalLink size={12} />
-            </button>
-          </footer>
-        </main>
-      </div>
-
-      <dialog
-        ref={dialog}
-        className="handbook-dialog"
-        aria-labelledby="handbook-title"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) dialog.current?.close();
-        }}
-      >
-        <div className="dialog-header">
-          <div>
-            <span className="eyebrow">THE SOURCE COLLECTION</span>
-            <h2 id="handbook-title">
-              {selectedSource?.title ?? handbookTitle}
-            </h2>
-          </div>
-          <button
-            className="icon-button"
-            aria-label="Close handbook"
-            onClick={() => dialog.current?.close()}
-          >
-            <X size={21} />
-          </button>
-        </div>
-        <div className="dialog-body">
-          <div className="collection-notice">
-            <ShieldCheck size={18} />
-            <p>
-              {custom
-                ? `“${handbookTitle}” was added by you for ${custom.name} and is stored in this browser only. Passages are searched exactly as you saved them.`
-                : `Passages from the official ${school.documentTitle}, ${school.department}, ${school.name}. Confirm critical decisions with the department.`}
-            </p>
-          </div>
-          {(selectedSource ? [selectedSource] : activeSections).map((source) => (
-            <article className="handbook-section" key={source.id}>
-              <span className="eyebrow">
-                SECTION {source.section.toUpperCase()} · VERSION{" "}
-                {source.version}
-              </span>
-              <h3>{source.title}</h3>
-              <p>{source.text}</p>
-              {selectedSource ? (
-                <>
-                  <div className="citation-box">
-                    <span>CITATION</span>
-                    <p>{source.citationLabel}</p>
-                    <code>{source.id}</code>
-                  </div>
-                  <div className="source-actions">
-                    <button
-                      className="text-button"
-                      onClick={() => void copySource(source)}
-                    >
-                      {copied ? <Check size={15} /> : <Copy size={15} />}
-                      {copied ? "Copied" : "Copy passage & citation"}
-                    </button>
-                    {custom ? null : (
-                      <a
-                        className="text-button"
-                        href={`/api/sources/${encodeURIComponent(source.id)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Source record <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </div>
-                  <details className="source-metadata">
-                    <summary>Source metadata</summary>
-                    <dl>
-                      {source.contentHash ? (
-                        <>
-                          <dt>Content hash</dt>
-                          <dd>{source.contentHash}</dd>
-                        </>
-                      ) : null}
-                      <dt>Location</dt>
-                      <dd>{source.location}</dd>
-                      <dt>Corpus revision</dt>
-                      <dd>
-                        {custom
-                          ? "Stored in this browser; indexed per search."
-                          : corpusVersion}
-                      </dd>
-                    </dl>
-                  </details>
-                </>
-              ) : (
-                <button
-                  className="text-button"
-                  onClick={() => setSelectedSource(source)}
-                >
-                  Inspect source <ArrowRight size={14} />
-                </button>
+        <p className="sidebar-label">WORKSPACE</p>
+        <nav>
+          {NAV.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              className={`nav-item ${view === id ? "active" : ""}`}
+              aria-current={view === id ? "page" : undefined}
+              onClick={() => navigate(id)}
+            >
+              <Icon size={17} />
+              <span>{label}</span>
+              {id === "documents" && (
+                <span className="nav-count">{doc?.documents.length ?? 0}</span>
               )}
-            </article>
+            </button>
           ))}
-        </div>
-        <div className="dialog-footer">
-          <span>
-            {activeSections.length} sections ·{" "}
-            {custom ? "Added on this device" : `Official handbook v${school.version}`}
-          </span>
-          {selectedSource ? (
-            <button
-              className="text-button"
-              onClick={() => setSelectedSource(null)}
-            >
-              View all sections <ArrowRight size={14} />
-            </button>
+        </nav>
+        <div className="sidebar-recents">
+          <div className="section-heading">
+            <p className="sidebar-label">THIS SESSION</p>
+            <span>{history.length.toString().padStart(2, "0")}</span>
+          </div>
+          {history.length ? (
+            history.slice(0, 5).map((item, index) => (
+              <button
+                key={index}
+                className="recent-item"
+                onClick={() => restore(item)}
+                disabled={busy}
+              >
+                <MessageSquareText size={13} />
+                <span>{item.question}</span>
+              </button>
+            ))
           ) : (
-            <button
-              className="text-button"
-              onClick={() => dialog.current?.close()}
-            >
-              Back to search <ArrowRight size={14} />
-            </button>
+            <p className="sidebar-empty">
+              Your questions will appear here.
+              <br />
+              Start with a document.
+            </p>
           )}
         </div>
-      </dialog>
+        <div className="sidebar-bottom">
+          <div className="local-note">
+            <ShieldCheck size={17} />
+            <div>
+              <strong>Your own reading space</strong>
+              <p>
+                Documents are saved in this browser. Questions use the search
+                server.
+              </p>
+            </div>
+          </div>
+          <a className="maker" href="mailto:durotoyeoluwaseunisreal@gmail.com">
+            <span className="avatar">ID</span>
+            <span>
+              <strong>Israel Durotoye</strong>
+              <small>Built with curiosity.</small>
+            </span>
+            <Mail size={14} />
+          </a>
+        </div>
+      </aside>
+      <div className="workspace-shell">
+        <header className="topbar">
+          <div className="breadcrumb">
+            <span>Campus Desk</span>
+            <ChevronRight size={13} />
+            <strong>{NAV.find((item) => item.id === view)?.label}</strong>
+          </div>
+          <div className="topbar-actions">
+            <span className="mode-badge">
+              <i className="status-dot" />
+              {generation ? "AI answers enabled" : "Source search"}
+            </span>
+            <button
+              className="icon-button panel-toggle"
+              aria-label={
+                panelOpen ? "Hide document panel" : "Show document panel"
+              }
+              aria-expanded={panelOpen}
+              aria-controls="document-panel"
+              onClick={() => setPanelOpen(!panelOpen)}
+            >
+              <PanelRight size={18} />
+            </button>
+          </div>
+        </header>
+        <div className={`workspace-grid ${panelOpen ? "panel-is-open" : ""}`}>
+          <main id="main-content" tabIndex={-1}>
+            <div className="main-content">
+              {view === "workspace" && (
+                <>
+                  {!result && (
+                    <header className="page-heading">
+                      <div className="eyebrow">
+                        <span className="tiny-line" /> YOUR KNOWLEDGE, WITH
+                        CONTEXT
+                      </div>
+                      <h1>
+                        A little clarity.
+                        <br />
+                        <span>A lot less searching.</span>
+                      </h1>
+                      <p>
+                        A reading desk for the things you need to know.
+                        <br className="desktop-break" /> Ask your documents a
+                        question. Keep the evidence close.
+                      </p>
+                    </header>
+                  )}
+                  {doc && (
+                    <div className="active-document">
+                      <span className="document-icon">
+                        <FileText size={20} />
+                      </span>
+                      <div>
+                        <strong>{doc.name}</strong>
+                        <span>
+                          {format} · {sections.length} sections ready to search
+                        </span>
+                      </div>
+                      <span className="ready-label">
+                        <i className="status-dot" />
+                        Ready
+                      </span>
+                      <button
+                        className="icon-button"
+                        aria-label="Replace document"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={busy}
+                      >
+                        <Upload size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {(!doc || progress) && upload}
+                  {extractError && (
+                    <p className="form-error" role="alert">
+                      <AlertTriangle size={15} />
+                      {extractError}
+                    </p>
+                  )}
+                  {doc && (
+                    <>
+                      {result && (
+                        <AnswerPanel
+                          key={`${result.question}-${result.elapsedMs}`}
+                          result={result}
+                          model={model}
+                          onSource={openSource}
+                        />
+                      )}
+                      {!result && (
+                        <div className="suggestions">
+                          <div className="section-heading">
+                            <h3>Find a place to start</h3>
+                            <span className="subtle">From your document</span>
+                          </div>
+                          <div className="suggestion-grid">
+                            {sections.slice(0, 3).map((source) => (
+                              <button
+                                key={source.id}
+                                disabled={busy}
+                                onClick={() => {
+                                  setQuestion(
+                                    `What does the document say about ${source.title}?`,
+                                  );
+                                  questionRef.current?.focus();
+                                }}
+                              >
+                                <FileText size={15} />
+                                <span>{source.title}</span>
+                                <ArrowUpRight size={14} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <form className="ask-form" onSubmit={onAsk}>
+                        <label htmlFor="question">
+                          {lastQuestion
+                            ? "Ask a follow-up"
+                            : "Ask your document"}
+                        </label>
+                        <div className="composer">
+                          <textarea
+                            ref={questionRef}
+                            id="question"
+                            value={question}
+                            onChange={(event) =>
+                              setQuestion(event.target.value)
+                            }
+                            placeholder="What would you like to know?"
+                            maxLength={4000}
+                            rows={2}
+                            disabled={busy}
+                            onKeyDown={(event) => {
+                              if (
+                                event.key === "Enter" &&
+                                !event.shiftKey &&
+                                !event.nativeEvent.isComposing
+                              ) {
+                                event.preventDefault();
+                                event.currentTarget.form?.requestSubmit();
+                              }
+                            }}
+                          />
+                          <div className="composer-bottom">
+                            <span>
+                              <FileText size={12} />
+                              {doc.name}
+                            </span>
+                            <button
+                              className="send-button"
+                              type="submit"
+                              disabled={busy || !question.trim()}
+                              aria-label="Ask question"
+                            >
+                              {asking ? (
+                                <Loader2 size={18} className="spin" />
+                              ) : (
+                                <ArrowUp size={18} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="composer-hint">
+                          <span role="status">
+                            {asking
+                              ? "Finding the relevant passages…"
+                              : "Enter to send · Shift + Enter for a new line"}
+                          </span>
+                          {lastQuestion && (
+                            <button
+                              type="button"
+                              onClick={newQuestion}
+                              disabled={busy}
+                            >
+                              Clear context
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                      {askError && (
+                        <p className="form-error" role="alert">
+                          {askError}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {!result && (
+                    <>
+                      <WorkspaceFlow ready={!!doc} generation={generation} />
+                      <div className="feature-row">
+                        <article>
+                          <BookOpenText size={19} />
+                          <div>
+                            <h3>Go straight to the source</h3>
+                            <p>
+                              Every passage keeps its original location. Open
+                              it, read it, check it.
+                            </p>
+                          </div>
+                        </article>
+                        <article>
+                          <Layers3 size={19} />
+                          <div>
+                            <h3>More than a PDF reader</h3>
+                            <p>
+                              Search typed text, Word documents and scanned
+                              pages in one place.
+                            </p>
+                          </div>
+                        </article>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+              {view === "documents" && (
+                <>
+                  <header className="page-heading compact">
+                    <span className="eyebrow">YOUR LIBRARY</span>
+                    <h1>Documents</h1>
+                    <p>Explore the text behind your answers.</p>
+                  </header>
+                  {doc ? (
+                    <>
+                      <div className="library-header">
+                        <div>
+                          <h2>{doc.name}</h2>
+                          <p>
+                            {format} · {sections.length} searchable sections
+                          </p>
+                        </div>
+                        <button
+                          className="secondary-button"
+                          onClick={() => fileRef.current?.click()}
+                          disabled={busy}
+                        >
+                          <Upload size={14} />
+                          Replace
+                        </button>
+                      </div>
+                      <label className="section-search">
+                        <Search size={16} />
+                        <input
+                          aria-label="Filter document sections"
+                          placeholder="Find a section or phrase…"
+                          value={filter}
+                          onChange={(event) => setFilter(event.target.value)}
+                        />
+                      </label>
+                      <div className="section-heading">
+                        <span className="eyebrow">DOCUMENT OUTLINE</span>
+                        <span className="subtle">
+                          {filtered.length} of {sections.length} sections
+                        </span>
+                      </div>
+                      <div className="document-list">
+                        {filtered.map((source, index) => (
+                          <button
+                            className="document-row"
+                            key={source.id}
+                            onClick={() => openSource(source)}
+                          >
+                            <span className="row-number">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span>
+                              <strong>{source.title}</strong>
+                              <small>
+                                {source.text.slice(0, 135)}
+                                {source.text.length > 135 ? "…" : ""}
+                              </small>
+                            </span>
+                            <span className="location">{source.location}</span>
+                            <ArrowUpRight size={15} />
+                          </button>
+                        ))}
+                        {!filtered.length && (
+                          <p className="empty-state">
+                            No sections match “{filter}”. Try a different word.
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        className="text-button remove-button"
+                        onClick={removeDoc}
+                        disabled={busy}
+                      >
+                        <Trash2 size={14} />
+                        Remove document from this browser
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {upload}
+                      <p className="below-upload">
+                        Once added, your document’s sections will appear here
+                        for browsing.
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+              {view === "activity" && (
+                <>
+                  <header className="page-heading compact">
+                    <span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span>
+                    <h1>Recent questions</h1>
+                    <p>
+                      Your last {history.length || "few"} questions from this
+                      session. Select one to revisit its sources.
+                    </p>
+                  </header>
+                  {history.length ? (
+                    <div className="history-list">
+                      {history.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => restore(item)}
+                          disabled={busy}
+                        >
+                          <MessageSquareText size={18} />
+                          <span>
+                            <strong>{item.question}</strong>
+                            <small>
+                              {item.sources.length}{" "}
+                              {item.sources.length === 1 ? "source" : "sources"}{" "}
+                              ·{" "}
+                              {item.status === "generated"
+                                ? "AI answer"
+                                : item.status === "insufficient_evidence"
+                                  ? "No evidence found"
+                                  : "Source search"}
+                            </small>
+                          </span>
+                          <ArrowRight size={17} />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-state">
+                      <Clock3 size={30} />
+                      <h2>A fresh page.</h2>
+                      <p>
+                        Ask your first question and you can return to it here.
+                      </p>
+                      <button
+                        className="secondary-button"
+                        onClick={() => navigate("workspace")}
+                      >
+                        Go to workspace
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  )}
+                  <p className="below-upload">
+                    Question history lasts for this page session and clears when
+                    you replace a document.
+                  </p>
+                </>
+              )}
+              {view === "guide" && (
+                <>
+                  <header className="page-heading compact">
+                    <span className="eyebrow">A LOOK UNDER THE HOOD</span>
+                    <h1>
+                      Good answers start
+                      <br />
+                      <span>with the right context.</span>
+                    </h1>
+                    <p>
+                      Here’s what happens between adding a file and finding an
+                      answer.
+                    </p>
+                  </header>
+                  <WorkspaceFlow
+                    ready={!!doc}
+                    generation={generation}
+                    expanded
+                  />
+                  <div className="guide-note">
+                    <ShieldCheck size={21} />
+                    <div>
+                      <h3>Know where your document goes</h3>
+                      <p>
+                        Files are read in your browser and the extracted text is
+                        saved here. When you ask a question, document sections
+                        are sent to the search server
+                        {generation
+                          ? ", and relevant passages are shared with the configured model provider"
+                          : ""}
+                        . Scanned-page OCR may download language files. Remove a
+                        document from the Documents view to clear its saved
+                        copy.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    className="secondary-button"
+                    onClick={() => navigate("workspace")}
+                  >
+                    Back to workspace
+                    <ArrowRight size={15} />
+                  </button>
+                </>
+              )}
+              <footer className="workspace-footer">
+                <span>
+                  Campus Desk <span className="footer-divider">/</span> A RAG
+                  Build Lab project
+                </span>
+                <span>Read. Ask. Understand.</span>
+              </footer>
+            </div>
+          </main>
+          <aside
+            className="context-panel"
+            id="document-panel"
+            ref={sourcePanelRef}
+            tabIndex={-1}
+            aria-label="Document details and sources"
+          >
+            <div className="panel-heading">
+              <h2>{selectedSource ? "Source preview" : "Document overview"}</h2>
+              {selectedSource ? (
+                <button
+                  className="icon-button"
+                  aria-label="Back to document overview"
+                  onClick={() => {
+                    setSelectedSource(null);
+                    setPanelOpen(false);
+                    if (window.innerWidth <= 1050)
+                      document.getElementById("main-content")?.focus();
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              ) : (
+                <FileText size={15} />
+              )}
+            </div>
+            {selectedSource ? (
+              <div className="source-preview">
+                <span className="source-location">
+                  <FileText size={13} />
+                  {selectedSource.location}
+                </span>
+                <h3>{selectedSource.title}</h3>
+                <p className="preview-document">
+                  {selectedSource.documentTitle}
+                </p>
+                <div className="source-full-text">{selectedSource.text}</div>
+                <button
+                  className="secondary-button copy-source"
+                  onClick={copySource}
+                >
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  {copied ? "Citation copied" : "Copy citation"}
+                </button>
+                {copyError && (
+                  <p className="form-error" role="alert">
+                    Select the source text to copy it; clipboard access is
+                    unavailable.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div
+                  className={`document-preview ${doc ? "has-document" : ""}`}
+                >
+                  <div className="paper-preview" aria-hidden>
+                    <span className="paper-corner" />
+                    <BookOpenText size={24} />
+                    <span className="paper-line long" />
+                    <span className="paper-line" />
+                    <span className="paper-line long" />
+                    <span className="paper-line short" />
+                    <div className="paper-highlight" />
+                    <span className="paper-line" />
+                    <span className="paper-line long" />
+                  </div>
+                  <span className="preview-badge">
+                    {doc ? format : "WAITING FOR A DOCUMENT"}
+                  </span>
+                </div>
+                <div className="panel-document-info">
+                  <h3>{doc?.name ?? "Your source of truth"}</h3>
+                  <p>
+                    {doc
+                      ? "Added to this browser. Ready to explore."
+                      : "Add a document to see its details, sections and original passages here."}
+                  </p>
+                </div>
+                <dl className="document-stats">
+                  <div>
+                    <dt>Status</dt>
+                    <dd>
+                      {doc ? (
+                        <>
+                          <i className="status-dot" />
+                          Ready to search
+                        </>
+                      ) : (
+                        "No document"
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Sections</dt>
+                    <dd>{doc ? sections.length : "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Pages</dt>
+                    <dd>
+                      {typeof meta.pages === "number" && meta.pages > 0
+                        ? meta.pages
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Answer mode</dt>
+                    <dd>{generation ? "AI + sources" : "Source excerpts"}</dd>
+                  </div>
+                </dl>
+                {meta.truncated === true && (
+                  <p className="panel-warning">
+                    This file was trimmed to the searchable size limit.
+                  </p>
+                )}
+                {meta.ocrFailed === true && (
+                  <p className="panel-warning">
+                    Some scanned pages could not be read.
+                  </p>
+                )}
+                {doc && (
+                  <div className="panel-outline">
+                    <div className="section-heading">
+                      <span className="eyebrow">
+                        {result ? "RETRIEVED SOURCES" : "QUICK LOOK"}
+                      </span>
+                      <span className="subtle">
+                        {result ? result.sources.length : sections.length}
+                      </span>
+                    </div>
+                    {(result ? result.sources : sections.slice(0, 4)).map(
+                      (source) => (
+                        <button
+                          key={source.id}
+                          onClick={() => openSource(source)}
+                        >
+                          <FileText size={14} />
+                          <span>
+                            {source.title}
+                            <small>{source.location}</small>
+                          </span>
+                          <ChevronRight size={13} />
+                        </button>
+                      ),
+                    )}
+                    {result && !result.sources.length && (
+                      <p className="subtle">
+                        No passages were retrieved for this question.
+                      </p>
+                    )}
+                    <button
+                      className="text-button browse-all"
+                      onClick={() => navigate("documents")}
+                    >
+                      Browse all sections
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
+                )}
+                <div className="desk-tip">
+                  <span className="eyebrow">
+                    <BookOpenText size={13} /> A NOTE FROM THE DESK
+                  </span>
+                  <p>
+                    {doc
+                      ? "Specific questions work best. Try a topic, a requirement or a phrase from your document."
+                      : "A handbook, a course guide, a policy. Start with one document you’ve been meaning to understand."}
+                  </p>
+                </div>
+                {!doc && (
+                  <button
+                    className="panel-upload"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={busy}
+                  >
+                    <ArrowDownToLine size={14} />
+                    Add your first document
+                  </button>
+                )}
+              </>
+            )}
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }

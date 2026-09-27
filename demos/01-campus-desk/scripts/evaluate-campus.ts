@@ -22,7 +22,7 @@ async function main() {
     passed: results.filter((item) => item.passed).length,
     cases: results.length,
     results,
-    scope: "Fixed retrieval checks over the bundled handbook, not an answer-quality benchmark.",
+    scope: "Fixed retrieval checks over the fixture handbook corpus shared with the Python baseline, not an answer-quality benchmark.",
   };
   mkdirSync("reports", { recursive: true });
   writeFileSync(

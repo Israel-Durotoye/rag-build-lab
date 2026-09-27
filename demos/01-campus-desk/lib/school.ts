@@ -294,7 +294,7 @@ function isHeadingLine(line: string): boolean {
   );
 }
 
-function chunkLongText(title: string, text: string): DraftSection[] {
+export function chunkLongText(title: string, text: string): DraftSection[] {
   const limit = SCHOOL_LIMITS.sectionText - 1000;
   if (text.length <= limit) return [{ title, text }];
   const parts: DraftSection[] = [];

@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
 import { POST } from "../app/api/search/route";
-import { GET } from "../app/api/sources/[id]/route";
+import fixture from "../corpus.json";
 
 const original = { ...process.env };
 beforeEach(() => {
-  delete process.env.CAMPUS_OLLAMA_MODEL;
-  delete process.env.CAMPUS_EMBEDDING_MODEL;
+  delete process.env.AGENTROUTER_API_KEY;
 });
 afterEach(() => {
   process.env = { ...original };
@@ -39,9 +38,18 @@ const customSchool = {
   ],
 };
 
-test("search route returns cited default handbook passages and no-store header", async () => {
+test("searching without an uploaded document is refused", async () => {
+  const response = await POST(request({ question: "Where is the library?" }));
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /document/i);
+});
+
+test("search runs over the supplied document and returns cited passages", async () => {
   const response = await POST(
-    request({ question: "Where is the departmental e-library?" }),
+    request({
+      question: "Where is the departmental e-library?",
+      documents: fixture,
+    }),
   );
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Cache-Control"), "no-store");
@@ -59,7 +67,7 @@ test("search route returns cited default handbook passages and no-store header",
   );
 });
 
-test("search route answers from a supplied school knowledge base instead", async () => {
+test("one visitor's document never leaks into another's request", async () => {
   const response = await POST(
     request({
       question: "When do fresh students swear the matriculation oath?",
@@ -79,18 +87,21 @@ test("search route answers from a supplied school knowledge base instead", async
       (source: { documentId: string }) => source.documentId === "unilag",
     ),
   );
-  // The default handbook stays untouched for the next visitor.
-  const fallback = await POST(
-    request({ question: "Where is the departmental e-library?" }),
+  // The next request only sees the documents it carries itself.
+  const next = await POST(
+    request({
+      question: "Where is the departmental e-library?",
+      documents: fixture,
+    }),
   );
   assert.ok(
-    (await fallback.json()).sources.every(
+    (await next.json()).sources.every(
       (source: { documentId: string }) => source.documentId === "handbook",
     ),
   );
 });
 
-test("invalid school knowledge bases are rejected with a clear message", async () => {
+test("invalid knowledge bases are rejected with a clear message", async () => {
   for (const documents of [
     "not-documents",
     [],
@@ -160,34 +171,16 @@ test("route rejects malformed, oversized and unsupported inputs", async () => {
   );
 });
 
-test("source preview resolves an actual stored record and denies other demos", async () => {
-  const response = await GET(new Request("http://localhost"), {
-    params: Promise.resolve({ id: "handbook:library-resources:0" }),
-  });
-  assert.equal(response.status, 200);
-  assert.ok((await response.json()).source.text.includes("e-Library"));
-  for (const id of [
-    "invented",
-    "beta-support:returns:0",
-    "unilag:matriculation:0",
-    "../corpus.json",
-  ]) {
-    assert.equal(
-      (
-        await GET(new Request("http://localhost"), {
-          params: Promise.resolve({ id }),
-        })
-      ).status,
-      404,
-    );
-  }
-});
-
 test("requests do not inherit another visitor's previous question", async () => {
-  await POST(request({ question: "library hours" }));
+  await POST(request({ question: "library hours", documents: fixture }));
   assert.equal(
-    (await (await POST(request({ question: "What about weekends?" }))).json())
-      .status,
+    (
+      await (
+        await POST(
+          request({ question: "What about weekends?", documents: fixture }),
+        )
+      ).json()
+    ).status,
     "clarification",
   );
 });

@@ -1,8 +1,52 @@
 # Campus Desk — TypeScript web app
 
-Campus Desk now has a Next.js App Router application entirely inside `demos/01-campus-desk`.
-The interface, search API, retrieval pipeline, and optional model adapters are
-TypeScript. Vercel can build and run this app without Python or Streamlit.
+Campus Desk is a Next.js App Router application entirely inside
+`demos/01-campus-desk`, built to show how retrieval-augmented answering works:
+you add a PDF or Word document in the browser, the app extracts and indexes it,
+and every answer is grounded in cited passages from that file. Extraction,
+retrieval, the search API and the DeepSeek adapter are all TypeScript.
+
+## How it works
+
+1. **Add a document (browser).** The visitor drops a PDF or Word file onto the
+   page. `lib/extract.ts` reads it locally: pdf.js extracts each page's text
+   layer, and pages with no text layer (scanned pages) are rendered to a canvas
+   and read with tesseract.js OCR. Word files go through mammoth. Nothing is
+   uploaded anywhere at this stage.
+2. **Index (browser).** The extracted pages are grouped into titled sections
+   with page locations (`p. 12`), validated against the limits in
+   `lib/school.ts`, and kept in that browser's local storage only.
+3. **Retrieve (server, per request).** Each question is POSTed together with
+   the document sections. The server re-validates them, indexes them for that
+   request (small in-memory LRU), and ranks sections with BM25
+   (`lib/retrieval.ts`). Nothing is stored server-side.
+4. **Generate (server, optional).** With an AgentRouter key configured, the top
+   passages and the question go to a DeepSeek model, which must answer as JSON
+   with citation IDs. Citations are validated against the supplied passages;
+   invalid answers fall back to showing the passages. Without a key the app
+   runs in source-search mode and shows the passages directly.
+
+The interface's **How this answer was made** disclosure walks an audience
+through exactly these steps with the live numbers from their own question.
+
+There is no bundled default corpus in the web app anymore: `corpus.json` (the
+FUT Minna handbook transcription) remains as the shared fixture for tests, the
+retrieval evaluation and the Python baseline.
+
+## Workspace interface
+
+The responsive dark workspace has four views: **Workspace**, **Documents**,
+**Recent questions**, and **How it works**. The left sidebar opens those views
+and revisits this session’s questions. The right panel shows document metadata,
+section shortcuts, and the complete text of a selected source, with a copy-citation
+action. On smaller screens, the panel opens above the content when a source is
+selected and can be toggled from the header.
+
+The Documents view filters section titles and text. New question clears follow-up
+context; recent questions restore their answer without another model request.
+History keeps the last 20 results in page memory only and clears when a document
+is replaced or removed. Document storage, PDF/OCR extraction, retrieval and
+provider configuration retain the behavior described above.
 
 ## Run locally
 
@@ -22,97 +66,41 @@ npm run build
 npm start
 ```
 
-The default needs no API keys, database, network model service, or model download.
-The existing Python demos remain available via their own `app.py` entry points.
-Campus Desk's old Streamlit entry point is retained as the original baseline;
-use the Next.js app for the website and Vercel deployment.
+Source-search mode needs no API keys or network services. PDF text extraction
+runs fully in the browser; the pdf.js worker and tesseract.js OCR assets load
+from version-pinned jsDelivr CDNs, so OCR of scanned pages needs an internet
+connection.
 
-## What migrated
+## Model configuration (DeepSeek via AgentRouter)
 
-- Responsive interface with sample questions, follow-ups, reset, and error states.
-- Handbook browsing and original-source dialogs, including copyable citations.
-- Real server-side keyword retrieval over the 57 sections transcribed from the
-  official FUT Minna Mechatronics Engineering Students' Handbook 2021–2025.
-- Document/section identifiers, SHA-256 content hashes, corpus revision and stored
-  metadata-derived labels. Unknown and out-of-context model citations are rejected.
-- Explicit source-search mode, insufficient-evidence state and generation fallback.
-- Optional Ollama generation, dense search and hybrid reciprocal rank fusion.
-- The same seven evaluation questions as the Python demo.
-
-`lib/retrieval.ts` implements BM25 in TypeScript, replacing SQLite FTS5 for this
-small immutable web corpus. Rankings and corpus fingerprints are not claimed to
-be byte-for-byte identical to Python. Both implementations read
-`corpus.json` and `evaluation.json` in this demo folder; no fixture copy is needed.
-The web app bundles only Campus Desk's public handbook. Tenant-tagged
-fixtures are rejected by its ingestion path. This is not production authentication.
-
-### Your school's knowledge base
-
-The **Your school** page (`/school`) is for students at another university: it
-takes a pasted handbook (split into sections by headings), a JSON import, or
-manually written sections, validates them against the limits in `lib/school.ts`,
-and stores them in that browser's local storage. When that knowledge base is
-active, each search request carries the documents in the `documents` field and
-the server validates and indexes them for that request only — nothing is stored
-server-side, and tenant-tagged documents are still rejected. The FUT Minna
-handbook remains the built-in default.
-
-There is no writable server database, global chat history, or answer cache.
-Update `corpus.json` and redeploy to update the hosted handbook. The original
-Streamlit reindex button is therefore not needed on the website. Conversation
-context is kept in the browser's current page state and sent explicitly per
-request; refreshing or clicking New search clears it.
-
-## Optional model configuration
-
-Leave all `CAMPUS_*` variables unset for source search. To reuse an existing Ollama
-service, put these in `.env.local` locally or Vercel's server-side environment
-settings. This folder’s `.env.example` lists the web settings. The repository-root example
-remains for the Python demos.
+Copy `.env.example` to `.env.local` (gitignored) and set the key:
 
 ```bash
-CAMPUS_OLLAMA_HOST=http://127.0.0.1:11434
-CAMPUS_OLLAMA_MODEL=your-installed-generation-model
-CAMPUS_EMBEDDING_MODEL=your-installed-embedding-model
-CAMPUS_MODEL_TIMEOUT_MS=20000
-# Only for a service that requires Bearer authentication:
-CAMPUS_OLLAMA_TOKEN=
+AGENTROUTER_API_KEY=your-key
+AGENTROUTER_MODEL=deepseek-v4-flash
+AGENTROUTER_BASE_URL=https://agentrouter.org/v1
+AGENTROUTER_TIMEOUT_MS=50000
 ```
 
-Both model names are optional and independent. Setting only the embedding model
-enables dense/hybrid modes without generation. This uses Ollama `/api/embed`,
-not the Python Sentence Transformers adapter. No models are pulled automatically.
-Never use `NEXT_PUBLIC_` for provider credentials.
-
-On Vercel, localhost refers to the Vercel runtime, not your PC. An optional model
-service must already be reachable from the deployment; use HTTPS and service
-authentication when applicable. Default keyword search needs none of this. Live
-model inference is not claimed by the adapter contract tests. Protect access and
-set appropriate usage limits before exposing model-backed generation publicly.
+The key stays server-side; never use `NEXT_PUBLIC_` for provider credentials.
+AgentRouter is an OpenAI-compatible relay; note that it only accepts requests
+identifying as one of its supported CLI clients, so `lib/providers.ts` sends a
+compatible User-Agent (override with `AGENTROUTER_USER_AGENT`). Answers are
+labeled in the interface with the exact model that wrote them. If the model is
+unavailable, times out, or cites unknown sources, the app falls back to the
+retrieved passages with an explicit notice.
 
 ## Deploy to Vercel
 
-No deployment has been created by this migration. When ready:
-
-1. Commit the web app files, shared handbook fixture and `package-lock.json` to
-   the GitHub repository.
-2. Import the repository in Vercel. Select **Next.js**, with **`demos/01-campus-desk`**
-   as Root Directory. Both the frontend and API backend live there.
-3. Use **Node.js 22.x**, install command `npm ci`, build command `npm run build`,
-   and leave Output Directory at the Next.js default.
-4. Leave provider variables unset for the working source-search demo. Deploy a
-   preview and check the First Class CGPA question, an absent topic (hostel
-   fees), source previews, and the Your school page before promoting.
-
-Alternatively, from `demos/01-campus-desk` with the Vercel CLI already installed:
-
-```bash
-vercel
-```
-
-Next.js is supported directly, so this app needs no custom Vercel routing file,
-Python deployment, persistent SQLite file, or paid integration. Deployment itself
-is a separate publishing action; the migration only prepares and verifies it.
+1. Commit the web app files and `package-lock.json` (never `.env.local`).
+2. Import the repository in Vercel: framework **Next.js**, Root Directory
+   **`demos/01-campus-desk`**, Node.js 22.x, install `npm ci`, build
+   `npm run build`.
+3. Add the `AGENTROUTER_*` variables in Vercel's server-side environment
+   settings if AI answers are wanted; leave them unset for source-search mode.
+4. Check a preview first: add a PDF, ask a question it answers, ask one it
+   doesn't (insufficient-evidence state), and open a scanned PDF for the OCR
+   path. Deployment is a separate publishing action you take deliberately.
 
 ## Check the implementation
 
@@ -127,50 +115,45 @@ npm run evaluate
 npm run build
 ```
 
-The evaluation command writes `reports/campus-typescript.json`. Tests use Node's
-test runner with `tsx` to execute TypeScript. Provider mocks are confined to tests.
-The GitHub Actions web job runs linting, type checking, tests, evaluation and build;
-it does not deploy. The Python job continues to verify the other demos.
-
-The manual answer-support checklist, seven questions, and 75-second demo script
-remain in the [Campus Desk README](README.md). In the new
-interface, use **Browse handbook**, **View source**, and **New search**. The search
-results show original passages; generated answers appear only when configured.
+The evaluation command writes `reports/campus-typescript.json`: fixed retrieval
+checks over the fixture handbook corpus, not an answer-quality benchmark. Tests
+use Node's test runner with `tsx`; provider calls are mocked in tests and no
+live model is queried by them.
 
 ## Code map
 
-All paths below are relative to `demos/01-campus-desk`. No web application code or
-Node package files live at the repository root.
+All paths below are relative to `demos/01-campus-desk`.
 
 | Path | Purpose |
 |---|---|
-| `app/page.tsx` | Server-rendered page and public capability settings |
-| `components/campus-desk.tsx` | Interactive interface and source previews |
-| `app/school/page.tsx` | Knowledge-base chooser for another school's handbook |
-| `components/school-manager.tsx` | Add, split, import, export and activate a school KB |
-| `app/api/search/route.ts` | Validated, bounded POST search endpoint (default or supplied KB) |
-| `app/api/sources/[id]/route.ts` | Stored source record; unknown IDs return 404 |
+| `app/page.tsx` | Server-rendered page; passes capability flags only |
+| `components/campus-desk.tsx` | Workspace navigation, uploads, section browser, session history and source panel |
+| `components/answer-panel.tsx` | Answers, supporting passages and copy response |
+| `components/workspace-flow.tsx` | Document-to-answer flow diagram and guide |
+| `app/api/search/route.ts` | Validated, bounded POST search endpoint (documents required) |
+| `lib/extract.ts` | Browser-side PDF text layer + OCR + Word extraction and sectioning |
+| `lib/school.ts` | Shared document validation, limits, browser storage, text splitter |
 | `lib/retrieval.ts` | Section ingestion, hashes, BM25, cosine and rank fusion |
 | `lib/pipeline.ts` | Search/answer composition and citation validation |
-| `lib/school.ts` | Shared school-KB validation, browser storage and text splitter |
-| `lib/providers.ts` | Configurable server-side Ollama adapters |
-| `web-tests/` | Retrieval, API, citation and provider contract tests |
+| `lib/providers.ts` | Server-side DeepSeek-via-AgentRouter generation adapter |
+| `web-tests/` | Retrieval, extraction, API, citation and provider contract tests |
 
 ## Remaining limits
 
-Keyword matches can be irrelevant and can miss paraphrases. “What are the library
-late fees?” retrieves library passages that do not state a fee; default source
-search does not invent an answer. Neither BM25 nor dense cosine scores are an
-answerability classifier. Valid citation IDs do not guarantee factual support.
-There is no PDF parser or OCR: another school's handbook is added as pasted
-text, sections or JSON on the Your school page, and lives only in that browser.
-No authentication, reranker, or persistent embedding store is included in
-this web version. Model vectors are recomputed per corpus when used.
+Keyword matches can be irrelevant and can miss paraphrases; BM25 scores are not
+an answerability classifier, and valid citation IDs do not guarantee factual
+support — the passages are always shown for verification. OCR quality depends
+on scan quality and only English is loaded. Very large files are trimmed to the
+shared knowledge-base limits (200 sections / ~860k characters, OCR capped at
+120 image pages) with a visible notice. Documents live in one browser's local
+storage; there is no server database, authentication, reranker, or persistent
+embedding store.
 
 ## Official references used
 
 - [Next.js installation](https://nextjs.org/docs/app/getting-started/installation)
 - [Route handlers](https://nextjs.org/docs/app/getting-started/route-handlers)
 - [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs)
-- [Ollama chat](https://docs.ollama.com/api/chat)
-- [Ollama embeddings](https://docs.ollama.com/api/embed)
+- [pdf.js](https://mozilla.github.io/pdf.js/)
+- [tesseract.js](https://tesseract.projectnaptha.com/)
+- [mammoth.js](https://github.com/mwilliamson/mammoth.js)

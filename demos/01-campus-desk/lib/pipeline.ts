@@ -43,14 +43,14 @@ export async function answer(
       ...base,
       status: "insufficient_evidence",
       notice:
-        "The handbook has no matching passages for this question. Try another topic or browse the sections.",
+        "This document has no matching passages for that question. Try wording it the way the document would.",
     };
   if (!generator)
     return {
       ...base,
       status: "sources_found",
       notice:
-        "These are passages from the handbook, not an AI-generated answer. Check whether they support your question.",
+        "These are passages from the document itself, not an AI-generated answer. Check whether they support your question.",
     };
   try {
     const result = validateGeneration(
@@ -69,8 +69,7 @@ export async function answer(
       status: "generated",
       answer: result.answer,
       citations: result.citations,
-      notice:
-        "Citation IDs checked. Review each claim against the original passage.",
+      notice: `Written by ${generator.label ?? "the configured model"} from the cited passages only. Citation IDs are checked — verify each claim against the passages below.`,
     };
   } catch {
     return {

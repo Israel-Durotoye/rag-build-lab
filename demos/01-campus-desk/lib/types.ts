@@ -50,5 +50,7 @@ export interface Embedder {
 }
 
 export interface Generator {
+  /** Honest description of what produces answers, shown next to them. */
+  label?: string;
   generate(question: string, sources: Source[]): Promise<unknown>;
 }

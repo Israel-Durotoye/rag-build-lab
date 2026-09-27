@@ -1,74 +1,115 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { handbook } from "../lib/handbook";
-import { capabilities, providers } from "../lib/providers";
+import { capabilities, modelLabel, providers } from "../lib/providers";
 
 test("default mode requires no model service", () => {
   assert.deepEqual(providers({}), {});
   assert.deepEqual(capabilities({}), { generation: false, modes: ["keyword"] });
+  assert.equal(modelLabel({}), "deepseek-v4-flash");
 });
 
-test("Ollama request contracts use configurable models and keep credentials server-side", async (context) => {
-  const calls: { url: string; payload: Record<string, unknown> }[] = [];
+test("AgentRouter requests keep the key server-side and parse fenced JSON", async (context) => {
+  const calls: {
+    url: string;
+    headers: Record<string, string>;
+    payload: Record<string, unknown>;
+  }[] = [];
   context.mock.method(
     globalThis,
     "fetch",
     async (url: URL, options: RequestInit) => {
       calls.push({
         url: url.toString(),
+        headers: options.headers as Record<string, string>,
         payload: JSON.parse(options.body as string),
       });
-      assert.equal(
-        (options.headers as Record<string, string>).Authorization,
-        "Bearer test-token",
-      );
-      return Response.json(
-        url.pathname === "/api/chat"
-          ? {
-              message: {
-                content: JSON.stringify({
-                  answer: "Test response",
-                  citations: [handbook.sources[0].id],
-                  insufficient: false,
-                }),
-              },
-            }
-          : {
-              embeddings: [
-                [1, 0],
-                [0, 1],
-              ],
+      return Response.json({
+        choices: [
+          {
+            message: {
+              reasoning_content: "hidden chain of thought",
+              content: `\`\`\`json\n${JSON.stringify({
+                answer: "Test response",
+                citations: [handbook.sources[0].id],
+                insufficient: false,
+              })}\n\`\`\``,
             },
-      );
+          },
+        ],
+      });
+    },
+  );
+  const adapters = providers({ AGENTROUTER_API_KEY: "test-key" });
+  assert.equal(adapters.generator!.label, "deepseek-v4-flash via AgentRouter");
+  const raw = (await adapters.generator!.generate("library", [
+    handbook.sources[0],
+  ])) as Record<string, unknown>;
+  assert.equal(raw.answer, "Test response");
+  assert.equal(calls[0].url, "https://agentrouter.org/v1/chat/completions");
+  assert.equal(calls[0].headers.Authorization, "Bearer test-key");
+  assert.ok(calls[0].headers["User-Agent"]);
+  assert.equal(calls[0].payload.model, "deepseek-v4-flash");
+  assert.equal(calls[0].payload.stream, false);
+  assert.equal(calls[0].payload.temperature, 0);
+  const messages = calls[0].payload.messages as { content: string }[];
+  assert.ok(messages[1].content.includes("untrusted_sources"));
+});
+
+test("model and base URL are configurable", async (context) => {
+  const seen: { url: string; model: unknown }[] = [];
+  context.mock.method(
+    globalThis,
+    "fetch",
+    async (url: URL, options: RequestInit) => {
+      seen.push({
+        url: url.toString(),
+        model: JSON.parse(options.body as string).model,
+      });
+      return Response.json({
+        choices: [{ message: { content: '{"answer":"ok"}' } }],
+      });
     },
   );
   const adapters = providers({
-    CAMPUS_OLLAMA_MODEL: "test-generator",
-    CAMPUS_EMBEDDING_MODEL: "test-embedder",
-    CAMPUS_OLLAMA_HOST: "https://models.example.test",
-    CAMPUS_OLLAMA_TOKEN: "test-token",
+    AGENTROUTER_API_KEY: "k",
+    AGENTROUTER_BASE_URL: "https://relay.example.test/api/v1",
+    AGENTROUTER_MODEL: "deepseek-r2",
   });
-  await adapters.generator!.generate("library", [handbook.sources[0]]);
-  await adapters.embedder!.embed(["one", "two"]);
-  assert.equal(calls[0].url, "https://models.example.test/api/chat");
-  assert.equal(calls[0].payload.model, "test-generator");
-  assert.equal(calls[0].payload.stream, false);
-  assert.equal(calls[1].url, "https://models.example.test/api/embed");
-  assert.deepEqual(calls[1].payload.input, ["one", "two"]);
-  assert.equal(calls[1].payload.truncate, false);
+  assert.equal(modelLabel({ AGENTROUTER_MODEL: "deepseek-r2" }), "deepseek-r2");
+  assert.equal(adapters.generator!.label, "deepseek-r2 via AgentRouter");
+  await adapters.generator!.generate("q", []);
+  assert.equal(seen[0].url, "https://relay.example.test/api/v1/chat/completions");
+  assert.equal(seen[0].model, "deepseek-r2");
 });
 
-test("bad model configuration fails explicitly", () => {
+test("bad configuration and bad responses fail explicitly", async (context) => {
   assert.throws(() =>
     providers({
-      CAMPUS_OLLAMA_MODEL: "x",
-      CAMPUS_OLLAMA_HOST: "file:///tmp/model",
+      AGENTROUTER_API_KEY: "k",
+      AGENTROUTER_BASE_URL: "file:///tmp/model",
     }),
   );
   assert.throws(() =>
-    providers({ CAMPUS_OLLAMA_MODEL: "x", CAMPUS_MODEL_TIMEOUT_MS: "0" }),
+    providers({ AGENTROUTER_API_KEY: "k", AGENTROUTER_TIMEOUT_MS: "0" }),
   );
   assert.throws(() =>
-    providers({ CAMPUS_OLLAMA_MODEL: "x", CAMPUS_MODEL_TIMEOUT_MS: "oops" }),
+    providers({ AGENTROUTER_API_KEY: "k", AGENTROUTER_TIMEOUT_MS: "oops" }),
+  );
+  context.mock.method(globalThis, "fetch", async () =>
+    Response.json({ choices: [{ message: { content: "" } }] }),
+  );
+  await assert.rejects(
+    providers({ AGENTROUTER_API_KEY: "k" }).generator!.generate("q", []),
+    /Empty model response/,
+  );
+  context.mock.method(
+    globalThis,
+    "fetch",
+    async () => new Response("nope", { status: 500 }),
+  );
+  await assert.rejects(
+    providers({ AGENTROUTER_API_KEY: "k" }).generator!.generate("q", []),
+    /unavailable/,
   );
 });
