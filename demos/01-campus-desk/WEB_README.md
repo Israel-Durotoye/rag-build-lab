@@ -31,7 +31,8 @@ use the Next.js app for the website and Vercel deployment.
 
 - Responsive interface with sample questions, follow-ups, reset, and error states.
 - Handbook browsing and original-source dialogs, including copyable citations.
-- Real server-side keyword retrieval over the same six synthetic sections.
+- Real server-side keyword retrieval over the 57 sections transcribed from the
+  official FUT Minna Mechatronics Engineering Students' Handbook 2021–2025.
 - Document/section identifiers, SHA-256 content hashes, corpus revision and stored
   metadata-derived labels. Unknown and out-of-context model citations are rejected.
 - Explicit source-search mode, insufficient-evidence state and generation fallback.
@@ -42,8 +43,19 @@ use the Next.js app for the website and Vercel deployment.
 small immutable web corpus. Rankings and corpus fingerprints are not claimed to
 be byte-for-byte identical to Python. Both implementations read
 `corpus.json` and `evaluation.json` in this demo folder; no fixture copy is needed.
-The web app bundles only Campus Desk's public synthetic handbook. Tenant-tagged
+The web app bundles only Campus Desk's public handbook. Tenant-tagged
 fixtures are rejected by its ingestion path. This is not production authentication.
+
+### Your school's knowledge base
+
+The **Your school** page (`/school`) is for students at another university: it
+takes a pasted handbook (split into sections by headings), a JSON import, or
+manually written sections, validates them against the limits in `lib/school.ts`,
+and stores them in that browser's local storage. When that knowledge base is
+active, each search request carries the documents in the `documents` field and
+the server validates and indexes them for that request only — nothing is stored
+server-side, and tenant-tagged documents are still rejected. The FUT Minna
+handbook remains the built-in default.
 
 There is no writable server database, global chat history, or answer cache.
 Update `corpus.json` and redeploy to update the hosted handbook. The original
@@ -89,7 +101,8 @@ No deployment has been created by this migration. When ready:
 3. Use **Node.js 22.x**, install command `npm ci`, build command `npm run build`,
    and leave Output Directory at the Next.js default.
 4. Leave provider variables unset for the working source-search demo. Deploy a
-   preview and check library hours, tuition, and source previews before promoting.
+   preview and check the First Class CGPA question, an absent topic (hostel
+   fees), source previews, and the Your school page before promoting.
 
 Alternatively, from `demos/01-campus-desk` with the Vercel CLI already installed:
 
@@ -133,10 +146,13 @@ Node package files live at the repository root.
 |---|---|
 | `app/page.tsx` | Server-rendered page and public capability settings |
 | `components/campus-desk.tsx` | Interactive interface and source previews |
-| `app/api/search/route.ts` | Validated, bounded POST search endpoint |
+| `app/school/page.tsx` | Knowledge-base chooser for another school's handbook |
+| `components/school-manager.tsx` | Add, split, import, export and activate a school KB |
+| `app/api/search/route.ts` | Validated, bounded POST search endpoint (default or supplied KB) |
 | `app/api/sources/[id]/route.ts` | Stored source record; unknown IDs return 404 |
 | `lib/retrieval.ts` | Section ingestion, hashes, BM25, cosine and rank fusion |
 | `lib/pipeline.ts` | Search/answer composition and citation validation |
+| `lib/school.ts` | Shared school-KB validation, browser storage and text splitter |
 | `lib/providers.ts` | Configurable server-side Ollama adapters |
 | `web-tests/` | Retrieval, API, citation and provider contract tests |
 
@@ -146,8 +162,10 @@ Keyword matches can be irrelevant and can miss paraphrases. “What are the libr
 late fees?” retrieves library passages that do not state a fee; default source
 search does not invent an answer. Neither BM25 nor dense cosine scores are an
 answerability classifier. Valid citation IDs do not guarantee factual support.
-No upload, authentication, reranker, or persistent embedding store is included in
-this web version. Model vectors are recomputed for the small fixture when used.
+There is no PDF parser or OCR: another school's handbook is added as pasted
+text, sections or JSON on the Your school page, and lives only in that browser.
+No authentication, reranker, or persistent embedding store is included in
+this web version. Model vectors are recomputed per corpus when used.
 
 ## Official references used
 

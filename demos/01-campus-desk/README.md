@@ -6,10 +6,14 @@ backend live here. See the [web setup and Vercel guide](WEB_README.md).
 The Python/Streamlit commands below remain available as the original baseline.
 The evaluation questions and answer-support checklist apply to both versions.
 
-A handbook search prototype using six fictional sections. The default is real
+A handbook search app over the official **Students' Handbook 2021–2025 of the
+Department of Mechatronics Engineering, Federal University of Technology,
+Minna** (57 transcribed sections in `corpus.json`). The default is real
 SQLite FTS5 retrieval with source excerpts, **not generated answers**. Read the
 handbook inside the app; selected passages appear beside the result.
-`manifest.json` declares the fixture synthetic.
+`manifest.json` records the corpus provenance. On the website, the **Your
+school** page (`/school`) lets a student at another university add their own
+handbook; it is stored in that browser and searched instead of the default.
 
 ## Setup and run
 
@@ -30,7 +34,7 @@ run app.py --server.address 127.0.0.1`.
 The CLI needs no third-party packages when run from the repository root:
 
 ```bash
-python -m rag_core.cli --config demos/01-campus-desk/config.json ask 'When does the library close?'
+python -m rag_core.cli --config demos/01-campus-desk/config.json ask 'What CGPA is required for a First Class degree?'
 python -m rag_core.cli --config demos/01-campus-desk/config.json evaluate
 ```
 
@@ -76,13 +80,13 @@ for every claim. The app exposes the actual returned status and evidence.
 
 | Question | Expected supporting section or status |
 |---|---|
-| When does the library close? | `library` |
-| How many books may I borrow, and for how long? | `borrowing` |
-| What is required before laboratory access? | `lab` |
-| When does course registration close? | `registration` |
-| How do I request housing? | `housing` |
-| How much is tuition? | Insufficient evidence |
-| Where does the shuttle stop? | Insufficient evidence |
+| What CGPA is required for a First Class degree? | `degree-classification` |
+| What are the areas of specialization in the department? | `specializations` |
+| How many weeks is SIWES II? | `industrial-training` |
+| What are the UTME admission requirements? | `admission-utme` |
+| What is the penalty for taking a GSM handset into the examination hall? | `misconduct-during-exam` |
+| What are the hostel accommodation fees? | Insufficient evidence |
+| Where does the campus shuttle stop? | Insufficient evidence |
 
 These are fixed development checks in `evaluation.json`, not a held-out benchmark.
 Section IDs map to `handbook:<section>:0`. Supported cases check that the section
@@ -90,18 +94,20 @@ is among returned passages; they do not measure generated answer accuracy.
 
 ## Manual answer-support checklist
 
-- Confirm the synthetic-data notice and whether generation is enabled.
+- Confirm the collection notice names the active handbook and whether
+  generation is enabled.
 - Ask each fixed question; inspect the selected passage, section and version.
-- For library hours, preserve weekdays (20:00) versus weekend access (16:00).
-- For borrowing, retain the three-book/fourteen-day limit and reference-book
-  exception when relevant.
+- For the First Class question, preserve the exact CGPA band (4.5 to 5.0) and
+  do not blur it with the Vice Chancellor's List threshold, which is also 4.5.
+- For SIWES II, retain the twenty-four-week duration and the rule that students
+  on SIWES cannot register for courses that semester.
 - If generation is enabled, match every factual claim to its cited passage.
   Verify each displayed reference matches a stored section. Mark plausible but
   unsupported answers as failures even when their citation IDs are valid.
 - Ask both absent-topic questions; verify no invented fee or shuttle stop appears.
-- Ask “What are the library late fees?” The fixture does not answer this. Offline
-  mode may retrieve passages but must not turn them into a fee answer. A generated
-  fee amount is an answer-support failure.
+- Ask “What are the library late fees?” The handbook does not state a fee. Offline
+  mode may retrieve library passages but must not turn them into a fee answer. A
+  generated fee amount is an answer-support failure.
 - Reset or reindex; verify the old result and follow-up context are cleared.
 - Record the actual model name (if any), question, passages and observed failure.
   Do not substitute the automated retrieval score for this review.
@@ -110,12 +116,12 @@ is among returned passages; they do not measure generated answer accuracy.
 
 | Time | Action and narration |
 |---|---|
-| 0–10 s | Open Campus Desk. “This is a fictional handbook. This run uses source search, so the passages are retrieved evidence, not an AI-written answer.” |
-| 10–20 s | Expand “Read the fictional handbook”; show Library hours, then collapse it. |
-| 20–40 s | Search “When does the library close?” Point to the passage beside the result and its stored citation label. Read the weekday/weekend distinction. |
-| 40–55 s | Search “How much is tuition?” Show insufficient evidence and no passages. |
-| 55–70 s | Search “What are the library late fees?” Explain that keyword overlap retrieves passages even though the handbook contains no fee amount. |
-| 70–75 s | “Next is testing answerability on paraphrases and misleading matches. Seven fixture checks are not a claim of broad accuracy.” |
+| 0–10 s | Open Campus Desk. “This is the FUT Minna Mechatronics students' handbook. This run uses source search, so the passages are retrieved evidence, not an AI-written answer.” |
+| 10–20 s | Expand “Read the handbook”; show the Grading System section, then collapse it. |
+| 20–40 s | Search “What CGPA is required for a First Class degree?” Point to the passage beside the result and its stored citation label. Read the 4.5–5.0 band. |
+| 40–55 s | Search “What are the hostel accommodation fees?” Show insufficient evidence and no passages. |
+| 55–70 s | Search “What are the library late fees?” Explain that keyword overlap retrieves library passages even though the handbook states no fee amount. |
+| 70–75 s | “Next is testing answerability on paraphrases and misleading matches. Seven fixed checks are not a claim of broad accuracy.” |
 
 For a generation-enabled recording, name the actual model, explain that the
 answer is generated, and perform the manual claim-support review first.
@@ -145,8 +151,9 @@ python -m streamlit run demos/01-campus-desk/app.py --server.address 0.0.0.0 --s
 ```
 
 That binds all host interfaces. Restrict network access or put an authenticated
-TLS reverse proxy in front before sharing outside a trusted network. Keep this
-synthetic fixture for the prototype. Configure provider settings on the host and
+TLS reverse proxy in front before sharing outside a trusted network. The bundled
+corpus is the public FUT Minna handbook; keep private documents out of this
+prototype. Configure provider settings on the host and
 ensure any selected model service is reachable there. Each browser session has
 its own in-memory index. No hosting resources have been created.
 

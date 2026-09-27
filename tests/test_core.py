@@ -25,9 +25,9 @@ def test_update_delete_persistence_and_no_duplicates(tmp_path):
     p=make(1,db=tmp_path/'store.sqlite');initial=p.index.version
     docs=p.documents
     p.index.replace(docs);assert p.index.version==initial
-    docs[0]['sections'][0]['text']='Library closes at 17:00.'
+    docs[0]['sections'][0]['text']='The reading room closes at 17:00.'
     p.index.replace(docs);assert p.index.version!=initial
-    assert '17:00' in p.ask('library')['sources'][0]['text']
+    assert '17:00' in p.ask('reading room 17:00')['sources'][0]['text']
     updated=p.index.version;p.index.close()
     index=Index(tmp_path/'store.sqlite');assert index.version==updated
     index.delete('handbook');assert index.chunks()==[];assert index.version!=updated
@@ -85,7 +85,7 @@ class FakeGenerator:
 
 
 def test_generation_citations_validation_and_fallback():
-    p=make(1,generator=FakeGenerator({'answer':'20:00','citations':['handbook:library:0'],'insufficient':False}))
+    p=make(1,generator=FakeGenerator({'answer':'The e-Library is at the SICT Library.','citations':['handbook:library-resources:0'],'insufficient':False}))
     assert p.ask('library hours')['status']=='generated'
     p.generator=FakeGenerator({'answer':'Invented','citations':['not-in-context'],'insufficient':False})
     assert p.ask('library hours')['status']=='generation_unavailable'

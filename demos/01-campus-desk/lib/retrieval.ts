@@ -24,7 +24,7 @@ export function ingest(documents: HandbookDocument[]) {
   const sources: Source[] = [];
   const ids = new Set<string>();
   for (const doc of documents) {
-    // This public demo accepts only its public handbook, never tenant fixtures.
+    // Campus Desk indexes public handbooks only; tenant-scoped fixtures are rejected.
     if (doc.metadata.tenant != null)
       throw new Error("Tenant documents are not supported in Campus Desk");
     for (const section of doc.sections) {

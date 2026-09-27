@@ -27,8 +27,8 @@ def test_campus_evidence_abstention_and_reset(monkeypatch):
     assert not app.exception
     assert [h.value for h in app.get('column')[0].subheader]==['Search result']
     assert [h.value for h in app.get('column')[1].subheader]==['Selected passages']
-    assert any('20:00' in t.value for t in app.get('column')[1].text)
-    assert any(e.label=='handbook · Library hours · library · v1' for e in app.expander)
+    assert any('4.5 to 5.0' in t.value for t in app.get('column')[1].text)
+    assert any(e.label=='handbook · Class of Degree · §2.9 · v2021-2025' for e in app.expander)
 
     app.text_input[0].set_value('How much is tuition?')
     next(b for b in app.button if b.label=='Search').click().run()

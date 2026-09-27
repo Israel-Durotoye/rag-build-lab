@@ -26,24 +26,25 @@ def test_ingest_preserves_section_provenance_and_revision(tmp_path):
     original = pipe.index.version
     try:
         chunks = pipe.index.chunks()
-        assert len(chunks) == 6
         sections = {s['id']: s for s in pipe.documents[0]['sections']}
+        assert len(chunks) == len(sections)
+        assert len(chunks) >= 40  # the full handbook is indexed
         for chunk in chunks:
             section = sections[chunk.metadata['section']]
             assert chunk.doc_id == 'handbook'
             assert chunk.title == section['title']
             assert chunk.location == section['location']
-            assert chunk.metadata['version'] == '1'
+            assert chunk.metadata['version'] == '2021-2025'
             assert chunk.metadata['content_hash'] == sha256(chunk.text.encode()).hexdigest()
         pipe.ingest()
         assert pipe.index.version == original
-        assert len(pipe.index.chunks()) == 6
+        assert len(pipe.index.chunks()) == len(sections)
     finally:
         pipe.index.close()
     reopened = Index(tmp_path / 'campus.sqlite')
     try:
         assert reopened.version == original
-        assert reopened.source('handbook:library:0').title == 'Library hours'
+        assert reopened.source('handbook:library-resources:0').title == 'University Library and e-Library'
     finally:
         reopened.close()
 
@@ -63,10 +64,13 @@ def test_fixed_evaluation_questions(campus, case):
 
 
 def test_search_and_answer_are_separate_and_labels_resolve(campus):
-    sources = campus.retrieve('library hours', k=1)
-    result = campus.respond('When does it close?', sources)
+    sources = campus.retrieve('University Library', k=1)
+    result = campus.respond('Where is the e-library?', sources)
     source_id = sources[0].id
-    assert result['citation_labels'][source_id] == 'handbook · Library hours · library · v1'
+    assert source_id == 'handbook:library-resources:0'
+    assert result['citation_labels'][source_id] == (
+        'handbook · University Library and e-Library · §4.6.1–4.6.3 · v2021-2025'
+    )
     assert campus.preview(source_id)['text'] == result['sources'][0]['text']
     with pytest.raises(PermissionError):
         campus.preview('handbook:invented:0')
@@ -74,8 +78,8 @@ def test_search_and_answer_are_separate_and_labels_resolve(campus):
 
 @pytest.mark.parametrize('citations,insufficient', [
     (['unknown'], False),
-    (['handbook:housing:0'], False),  # Exists in storage, but not in selected context.
-    (['handbook:library:0', 'unknown'], False),
+    (['handbook:vision:0'], False),  # Exists in storage, but not in selected context.
+    (['handbook:library-resources:0', 'unknown'], False),
     ([], False),
     ([123], False),
     (['unknown'], True),
@@ -123,10 +127,12 @@ def test_keyword_overlap_is_not_presented_as_an_answer(campus):
 
 def test_session_index_survives_thread_changes_and_concurrent_reindex(campus):
     """Real Streamlit reruns use different threads, unlike the AppTest harness."""
+    expected_sections = len(campus.documents[0]['sections'])
+
     def search_and_preview():
-        result = campus.ask('When does the library close?')
-        assert 'handbook:library:0' in {s['id'] for s in result['sources']}
-        assert '20:00' in campus.preview('handbook:library:0')['text']
+        result = campus.ask('Who is the current Head of Department?')
+        assert 'handbook:department-history:0' in {s['id'] for s in result['sources']}
+        assert 'Kolo' in campus.preview('handbook:department-history:0')['text']
 
     with ThreadPoolExecutor(max_workers=3) as workers:
         jobs = []
@@ -135,4 +141,4 @@ def test_session_index_survives_thread_changes_and_concurrent_reindex(campus):
             jobs.append(workers.submit(campus.ingest))
         for job in jobs:
             job.result(timeout=10)
-    assert len(campus.index.chunks()) == 6
+    assert len(campus.index.chunks()) == expected_sections

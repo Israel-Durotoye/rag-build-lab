@@ -9,7 +9,8 @@ def run(config_path):
     config=load_config(config_path)
     st.set_page_config(page_title=config['name'],layout='wide')
     st.title(config['name'])
-    st.caption('RAG Build Lab · synthetic sample collection · local learning prototype')
+    st.caption('RAG Build Lab · local learning prototype' if config['kind']=='campus'
+               else 'RAG Build Lab · synthetic sample collection · local learning prototype')
     st.write(config['description'])
     key='pipeline:'+str(config_path)
     if key not in st.session_state:
@@ -29,7 +30,7 @@ def run(config_path):
         pipe.ingest(); st.session_state.pop('result:'+key,None)
         st.session_state.pop('previous:'+key,None)
     if kind=='campus':
-        with st.expander('Read the fictional handbook'):
+        with st.expander('Read the handbook'):
             for doc in pipe.documents:
                 st.caption(doc['title']+' · version '+doc.get('version','1'))
                 for section in doc['sections']:

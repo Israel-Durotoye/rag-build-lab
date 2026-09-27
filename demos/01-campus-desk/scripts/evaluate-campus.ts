@@ -22,7 +22,7 @@ async function main() {
     passed: results.filter((item) => item.passed).length,
     cases: results.length,
     results,
-    scope: "Synthetic retrieval checks, not an answer-quality benchmark.",
+    scope: "Fixed retrieval checks over the bundled handbook, not an answer-quality benchmark.",
   };
   mkdirSync("reports", { recursive: true });
   writeFileSync(

@@ -6,10 +6,12 @@ import cases from "../evaluation.json";
 import { handbook } from "../lib/handbook";
 import { answer, ask, validateGeneration } from "../lib/pipeline";
 import { cosine, fuse, ingest, search } from "../lib/retrieval";
+import { parseSchoolDocuments, splitHandbookText } from "../lib/school";
 import type { Generator } from "../lib/types";
 
 test("ingestion preserves source identity, provenance, and stable revisions", () => {
-  assert.equal(handbook.sources.length, 6);
+  assert.equal(handbook.sources.length, documents[0].sections.length);
+  assert.ok(handbook.sources.length >= 40, "the full handbook is indexed");
   for (const source of handbook.sources) {
     const section = documents[0].sections.find(
       (item) => item.id === source.section,
@@ -17,7 +19,7 @@ test("ingestion preserves source identity, provenance, and stable revisions", ()
     assert.equal(source.id, `handbook:${section.id}:0`);
     assert.equal(source.title, section.title);
     assert.equal(source.location, section.location);
-    assert.equal(source.version, "1");
+    assert.equal(source.version, "2021-2025");
     assert.equal(
       source.contentHash,
       createHash("sha256").update(section.text).digest("hex"),
@@ -25,7 +27,7 @@ test("ingestion preserves source identity, provenance, and stable revisions", ()
   }
   assert.equal(ingest(documents).version, handbook.version);
   const edited = structuredClone(documents);
-  edited[0].sections[0].text = "The library closes at 17:00.";
+  edited[0].sections[0].text = "The department was founded in another year.";
   assert.notEqual(ingest(edited).version, handbook.version);
   assert.throws(() => ingest([...documents, ...documents]), /Duplicate/);
 });
@@ -35,6 +37,88 @@ test("tenant-marked documents cannot enter the public web index", () => {
     () => ingest([{ ...documents[0], metadata: { tenant: "alpha" } }]),
     /Tenant/,
   );
+  assert.throws(
+    () =>
+      parseSchoolDocuments([
+        { ...structuredClone(documents[0]), metadata: { tenant: "alpha" } },
+      ]),
+    /Tenant/,
+  );
+});
+
+test("the bundled corpus round-trips through the school validator", () => {
+  const parsed = parseSchoolDocuments(structuredClone(documents));
+  assert.equal(ingest(parsed).sources.length, handbook.sources.length);
+});
+
+test("school validator rejects malformed knowledge bases with plain messages", () => {
+  assert.throws(() => parseSchoolDocuments([]), /at least one/);
+  assert.throws(() => parseSchoolDocuments("handbook"), /at least one/);
+  assert.throws(
+    () => parseSchoolDocuments([{ id: "a", title: "A", sections: [] }]),
+    /at least one section/,
+  );
+  assert.throws(
+    () =>
+      parseSchoolDocuments([
+        {
+          id: "Bad ID!",
+          title: "A",
+          sections: [{ id: "s", title: "S", text: "T" }],
+        },
+      ]),
+    /lowercase/,
+  );
+  assert.throws(
+    () =>
+      parseSchoolDocuments([
+        {
+          id: "a",
+          title: "A",
+          sections: [{ id: "s", title: "S", text: "T", tenant: "x" }],
+        },
+      ]),
+    /Unsupported section field/,
+  );
+  assert.throws(
+    () =>
+      parseSchoolDocuments([
+        {
+          id: "a",
+          title: "A",
+          extra: true,
+          sections: [{ id: "s", title: "S", text: "T" }],
+        },
+      ]),
+    /Unsupported document field/,
+  );
+  assert.throws(
+    () =>
+      parseSchoolDocuments([
+        {
+          id: "a",
+          title: "A",
+          sections: [{ id: "s", title: "S", text: "x".repeat(9000) }],
+        },
+      ]),
+    /characters/,
+  );
+});
+
+test("pasted handbook text splits into titled sections", () => {
+  const sections = splitHandbookText(
+    "2.7 Grading System\nThe university operates a 5.0 grading system.\n\nWITHDRAWAL\nA student on probation who fails to improve is withdrawn.",
+  );
+  assert.deepEqual(
+    sections.map((section) => section.title),
+    ["2.7 Grading System", "WITHDRAWAL"],
+  );
+  assert.ok(sections[0].text.includes("5.0 grading system"));
+  const plain = splitHandbookText(
+    "Just one paragraph without any heading at all.",
+  );
+  assert.equal(plain.length, 1);
+  assert.ok(plain[0].text.includes("one paragraph"));
 });
 
 for (const item of cases) {
@@ -74,10 +158,12 @@ test("absent evidence never calls a model", async () => {
 });
 
 test("citations must be in selected context, even for model abstention", async () => {
-  const source = handbook.sources[0];
+  const source = handbook.sources.find(
+    (item) => item.id === "handbook:library-resources:0",
+  )!;
   for (const citations of [
     ["unknown"],
-    ["handbook:housing:0"],
+    ["handbook:vision:0"],
     [source.id, "unknown"],
     [7],
   ]) {
@@ -101,16 +187,19 @@ test("citations must be in selected context, even for model abstention", async (
       [source],
     ),
   );
-  const result = await answer("library hours", [source], {
+  const result = await answer("departmental e-library", [source], {
     generate: async () => ({
-      answer: "20:00 on weekdays",
+      answer: "The departmental e-Library is at the SICT Library.",
       citations: [source.id],
       insufficient: false,
     }),
   });
   assert.equal(result.status, "generated");
   assert.deepEqual(result.citations, [source.id]);
-  assert.equal(source.citationLabel, "handbook · Library hours · library · v1");
+  assert.equal(
+    source.citationLabel,
+    "handbook · University Library and e-Library · §4.6.1–4.6.3 · v2021-2025",
+  );
 });
 
 test("invalid generation and provider errors preserve sources without claiming an answer", async () => {
@@ -165,14 +254,16 @@ test("follow-ups require explicit client context and use it for generation", asy
       generate: async (query) => {
         generatedQuestion = query;
         return {
-          answer: "16:00",
-          citations: ["handbook:library:0"],
+          answer: "The handbook describes the library collections.",
+          citations: ["handbook:library-resources:0"],
           insufficient: false,
         };
       },
     },
   });
-  assert.ok(result.sources.some((source) => source.section === "library"));
+  assert.ok(
+    result.sources.some((source) => source.section === "library-resources"),
+  );
   assert.ok(generatedQuestion.includes("library hours"));
   assert.equal(
     (await ask(handbook, "What about weekends?")).status,
@@ -185,12 +276,12 @@ test("dense retrieval and reciprocal rank fusion use the configured adapter", as
   const embedder = {
     embed: async (texts: string[]) =>
       texts.map((text, i) =>
-        i === 0 || text.startsWith("Library hours") ? [1, 0] : [0, 1],
+        i === 0 || text.startsWith("University Library") ? [1, 0] : [0, 1],
       ),
   };
   assert.equal(
     (await search(handbook, "reading room", "dense", embedder))[0].section,
-    "library",
+    "library-resources",
   );
   assert.ok((await search(handbook, "library", "hybrid", embedder)).length);
   await assert.rejects(search(handbook, "library", "dense"), /not configured/);

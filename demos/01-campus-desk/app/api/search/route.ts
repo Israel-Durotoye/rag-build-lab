@@ -1,16 +1,39 @@
 import { handbook } from "@/lib/handbook";
 import { ask } from "@/lib/pipeline";
 import { capabilities, providers } from "@/lib/providers";
+import { ingest, type Corpus } from "@/lib/retrieval";
+import { parseSchoolDocuments } from "@/lib/school";
 import type { RetrievalMode } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+// Large enough for a question plus a pasted school knowledge base.
+const MAX_BODY_BYTES = 1_048_576;
 
 function failure(message: string, status: number) {
   return Response.json(
     { error: message },
     { status, headers: { "Cache-Control": "no-store" } },
   );
+}
+
+// Custom school corpora are re-ingested per request; a tiny per-instance
+// cache avoids re-hashing the same knowledge base on every question.
+const customCorpora = new Map<string, Corpus>();
+
+function corpusForDocuments(documents: unknown): Corpus {
+  const parsed = parseSchoolDocuments(documents);
+  const key = JSON.stringify(parsed);
+  const cached = customCorpora.get(key);
+  if (cached) return cached;
+  const corpus = ingest(parsed);
+  customCorpora.set(key, corpus);
+  if (customCorpora.size > 4) {
+    const oldest = customCorpora.keys().next().value;
+    if (oldest !== undefined) customCorpora.delete(oldest);
+  }
+  return corpus;
 }
 
 export async function POST(request: Request) {
@@ -32,7 +55,7 @@ export async function POST(request: Request) {
       const part = await reader.read();
       if (part.done) break;
       size += part.value.byteLength;
-      if (size > 32768) {
+      if (size > MAX_BODY_BYTES) {
         await reader.cancel();
         return failure("Request is too large.", 413);
       }
@@ -47,7 +70,8 @@ export async function POST(request: Request) {
   const input = body as Record<string, unknown>;
   if (
     Object.keys(input).some(
-      (key) => !["question", "mode", "previousQuestion"].includes(key),
+      (key) =>
+        !["question", "mode", "previousQuestion", "documents"].includes(key),
     )
   )
     return failure("Unsupported search option.", 400);
@@ -69,8 +93,21 @@ export async function POST(request: Request) {
     !capabilities().modes.includes(mode as RetrievalMode)
   )
     return failure("This retrieval mode is not available.", 400);
+  // Default: the bundled handbook. With documents: the sender's own school
+  // knowledge base, validated and indexed for this request only.
+  let corpus = handbook;
+  if (input.documents !== undefined) {
+    try {
+      corpus = corpusForDocuments(input.documents);
+    } catch (cause) {
+      return failure(
+        cause instanceof Error ? cause.message : "Invalid knowledge base.",
+        400,
+      );
+    }
+  }
   try {
-    const result = await ask(handbook, input.question, {
+    const result = await ask(corpus, input.question, {
       mode: mode as RetrievalMode,
       previousQuestion: input.previousQuestion as string | undefined,
       ...providers(),

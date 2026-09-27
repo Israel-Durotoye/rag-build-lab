@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -15,11 +22,18 @@ import {
   GraduationCap,
   LibraryBig,
   RotateCcw,
+  School,
   Search,
   ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
+import {
+  getKbSnapshot,
+  getServerKbSnapshot,
+  sectionsFromDocuments,
+  subscribeKb,
+} from "@/lib/school";
 import type {
   Capabilities,
   RetrievalMode,
@@ -27,20 +41,56 @@ import type {
   Source,
 } from "@/lib/types";
 
-const suggestions = [
-  "When does the library close?",
-  "How many books may I borrow?",
-  "How do I request housing?",
+export interface SchoolInfo {
+  name: string;
+  shortName: string;
+  department: string;
+  documentTitle: string;
+  version: string;
+}
+
+const DEFAULT_SUGGESTIONS = [
+  "What CGPA do I need for a First Class?",
+  "What are the requirements to proceed to 200 Level?",
+  "How many weeks is SIWES II?",
 ];
+
+const DEFAULT_TOPICS = [
+  {
+    icon: <BookOpen />,
+    title: "Admission & entry",
+    description: "UTME and Direct Entry requirements, O'Level subjects and transfers.",
+    query: "What are the UTME admission requirements?",
+    label: "Explore admission",
+  },
+  {
+    icon: <GraduationCap />,
+    title: "Grades & graduation",
+    description: "The grading system, CGPA computation and classes of degree.",
+    query: "How is the CGPA calculated?",
+    label: "Explore grading",
+  },
+  {
+    icon: <FileText />,
+    title: "Rules & training",
+    description: "Examination regulations, SWEP and SIWES industrial training.",
+    query: "How many weeks is SIWES II?",
+    label: "Explore regulations",
+  },
+];
+
+const SIDEBAR_SECTION_LIMIT = 9;
 
 export default function CampusDesk({
   sections,
   corpusVersion,
   capabilities,
+  school,
 }: {
   sections: Source[];
   corpusVersion: string;
   capabilities: Capabilities;
+  school: SchoolInfo;
 }) {
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState<SearchResult | null>(null);
@@ -50,6 +100,9 @@ export default function CampusDesk({
   const [error, setError] = useState("");
   const [selectedSource, setSelectedSource] = useState<Source | null>(null);
   const [copied, setCopied] = useState(false);
+  // The active knowledge base lives in this browser only.
+  const kb = useSyncExternalStore(subscribeKb, getKbSnapshot, getServerKbSnapshot);
+  const custom = kb.active === "custom" ? kb.school : null;
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const controller = useRef<AbortController | null>(null);
@@ -63,6 +116,28 @@ export default function CampusDesk({
     },
     [],
   );
+
+  const activeSections = useMemo(
+    () => (custom ? sectionsFromDocuments(custom.documents) : sections),
+    [custom, sections],
+  );
+  const schoolName = custom ? custom.name : school.name;
+  const handbookTitle = custom ? custom.documents[0].title : school.documentTitle;
+  const handbookVersion = custom ? custom.documents[0].version : school.version;
+  const suggestions = custom
+    ? activeSections
+        .slice(0, 3)
+        .map((section) => `What does the handbook say about ${section.title}?`)
+    : DEFAULT_SUGGESTIONS;
+  const topics = custom
+    ? activeSections.slice(0, 3).map((section) => ({
+        icon: <BookOpen />,
+        title: section.title,
+        description: `${section.text.slice(0, 88).trimEnd()}…`,
+        query: `What does the handbook say about ${section.title}?`,
+        label: "Ask about this",
+      }))
+    : DEFAULT_TOPICS;
 
   function openHandbook(source?: Source) {
     setSelectedSource(source ?? null);
@@ -100,7 +175,12 @@ export default function CampusDesk({
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: query, mode, previousQuestion }),
+        body: JSON.stringify({
+          question: query,
+          mode,
+          previousQuestion,
+          ...(custom ? { documents: custom.documents } : {}),
+        }),
         signal: abort.signal,
       });
       const data = await response.json();
@@ -174,19 +254,29 @@ export default function CampusDesk({
         <button className="nav-link" onClick={() => openHandbook()}>
           <LibraryBig size={18} /> Browse handbook <ChevronRight size={15} />
         </button>
+        <Link className="nav-link" href="/school">
+          <School size={18} /> Your school <ChevronRight size={15} />
+        </Link>
         <div className="sidebar-divider" />
         <div className="section-label">
           IN THE HANDBOOK{" "}
-          <span>{sections.length.toString().padStart(2, "0")}</span>
+          <span>{activeSections.length.toString().padStart(2, "0")}</span>
         </div>
         <nav aria-label="Handbook sections" className="section-nav">
-          {sections.map((section, index) => (
+          {activeSections.slice(0, SIDEBAR_SECTION_LIMIT).map((section, index) => (
             <button key={section.id} onClick={() => openHandbook(section)}>
               <span>{(index + 1).toString().padStart(2, "0")}</span>
               {section.title}
               <ChevronRight size={14} />
             </button>
           ))}
+          {activeSections.length > SIDEBAR_SECTION_LIMIT ? (
+            <button className="section-more" onClick={() => openHandbook()}>
+              <span>+</span>
+              All {activeSections.length} sections
+              <ChevronRight size={14} />
+            </button>
+          ) : null}
         </nav>
         <div className="sidebar-note">
           <div className="note-icon">
@@ -199,21 +289,27 @@ export default function CampusDesk({
           </button>
         </div>
         <div className="sidebar-bottom">
-          <span className="status-dot" /> Fictional campus · Demo 01{" "}
-          <span>v1.0</span>
+          <span className="status-dot" />
+          <span className="kb-name">
+            {custom ? custom.name : school.shortName}
+          </span>{" "}
+          <span>v{handbookVersion}</span>
         </div>
       </aside>
 
       <div className="main-shell">
         <header className="topbar">
           <div>
-            <span className="breadcrumb">The learning lab</span>
+            <span className="breadcrumb">{schoolName}</span>
             <ChevronRight size={13} />
             <span>Campus Desk</span>
           </div>
-          <span className="synthetic-badge">
-            <ShieldCheck size={14} /> Synthetic handbook
-          </span>
+          <Link className="school-badge" href="/school">
+            <ShieldCheck size={14} />
+            <span className="badge-label">
+              {custom ? "Your school’s handbook" : "Official student handbook"}
+            </span>
+          </Link>
         </header>
         <main id="main" className="main-content">
           <div className="intro-top">
@@ -230,7 +326,9 @@ export default function CampusDesk({
             <span>A little easier to navigate.</span>
           </h1>
           <p className="intro-description">
-            From library hours to finding a place to live.
+            {custom
+              ? `Searching “${handbookTitle}” for ${custom.name}.`
+              : "From admission and course structure to SIWES and your final-year project."}
             <br className="mobile-break" /> Ask a question, and go straight to
             the source.
           </p>
@@ -247,7 +345,7 @@ export default function CampusDesk({
                 onChange={(event) => setQuestion(event.target.value)}
                 maxLength={4000}
                 rows={2}
-                placeholder="e.g. When does the library close?"
+                placeholder="e.g. What CGPA do I need for a First Class?"
                 aria-describedby="search-help"
                 onKeyDown={(event) => {
                   if (
@@ -453,8 +551,9 @@ export default function CampusDesk({
                         <FileText size={30} strokeWidth={1.3} />
                         <p>No supporting passage selected.</p>
                         <small>
-                          Try library hours, borrowing, registration, housing,
-                          or student support.
+                          {custom
+                            ? "Try one of the section titles from your handbook."
+                            : "Try admission, CGPA and grading, SIWES, course registration, or examination rules."}
                         </small>
                       </div>
                     )}
@@ -482,6 +581,14 @@ export default function CampusDesk({
                       <dd>{result.retrievalQuery}</dd>
                     </div>
                     <div>
+                      <dt>Knowledge base</dt>
+                      <dd>
+                        {custom
+                          ? `${custom.name} (added on this device)`
+                          : `${school.name} (default)`}
+                      </dd>
+                    </div>
+                    <div>
                       <dt>Corpus revision</dt>
                       <dd>{result.corpusVersion}</dd>
                     </div>
@@ -495,32 +602,7 @@ export default function CampusDesk({
                   <span>One handbook. Original sources.</span>
                 </div>
                 <div className="topic-grid">
-                  {[
-                    {
-                      icon: <BookOpen />,
-                      title: "Study & discover",
-                      description:
-                        "Library hours, borrowing limits, and getting into the lab.",
-                      query: "How many books may I borrow?",
-                      label: "Explore studying",
-                    },
-                    {
-                      icon: <GraduationCap />,
-                      title: "Make yourself at home",
-                      description:
-                        "Find your way through housing and student support.",
-                      query: "How do I request housing?",
-                      label: "Explore campus life",
-                    },
-                    {
-                      icon: <FileText />,
-                      title: "Know the next step",
-                      description:
-                        "Keep course registration and important details in sight.",
-                      query: "When does course registration close?",
-                      label: "Explore registration",
-                    },
-                  ].map((topic) => (
+                  {topics.map((topic) => (
                     <button
                       className="topic-card"
                       key={topic.title}
@@ -543,7 +625,10 @@ export default function CampusDesk({
             <span>
               <ShieldCheck size={15} /> Clear sources. Honest limits.
             </span>
-            <p>A fictional handbook for learning how retrieval works.</p>
+            <p>
+              Every result points back to the exact handbook passage it came
+              from.
+            </p>
             <button onClick={() => openHandbook()}>
               About this collection <ExternalLink size={12} />
             </button>
@@ -563,7 +648,7 @@ export default function CampusDesk({
           <div>
             <span className="eyebrow">THE SOURCE COLLECTION</span>
             <h2 id="handbook-title">
-              {selectedSource?.title ?? "The student handbook"}
+              {selectedSource?.title ?? handbookTitle}
             </h2>
           </div>
           <button
@@ -578,11 +663,12 @@ export default function CampusDesk({
           <div className="collection-notice">
             <ShieldCheck size={18} />
             <p>
-              Original synthetic fixture for RAG Build Lab. This handbook does
-              not represent a real university.
+              {custom
+                ? `“${handbookTitle}” was added by you for ${custom.name} and is stored in this browser only. Passages are searched exactly as you saved them.`
+                : `Passages from the official ${school.documentTitle}, ${school.department}, ${school.name}. Confirm critical decisions with the department.`}
             </p>
           </div>
-          {(selectedSource ? [selectedSource] : sections).map((source) => (
+          {(selectedSource ? [selectedSource] : activeSections).map((source) => (
             <article className="handbook-section" key={source.id}>
               <span className="eyebrow">
                 SECTION {source.section.toUpperCase()} · VERSION{" "}
@@ -605,22 +691,34 @@ export default function CampusDesk({
                       {copied ? <Check size={15} /> : <Copy size={15} />}
                       {copied ? "Copied" : "Copy passage & citation"}
                     </button>
-                    <a
-                      className="text-button"
-                      href={`/api/sources/${encodeURIComponent(source.id)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Source record <ExternalLink size={14} />
-                    </a>
+                    {custom ? null : (
+                      <a
+                        className="text-button"
+                        href={`/api/sources/${encodeURIComponent(source.id)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Source record <ExternalLink size={14} />
+                      </a>
+                    )}
                   </div>
                   <details className="source-metadata">
                     <summary>Source metadata</summary>
                     <dl>
-                      <dt>Content hash</dt>
-                      <dd>{source.contentHash}</dd>
+                      {source.contentHash ? (
+                        <>
+                          <dt>Content hash</dt>
+                          <dd>{source.contentHash}</dd>
+                        </>
+                      ) : null}
+                      <dt>Location</dt>
+                      <dd>{source.location}</dd>
                       <dt>Corpus revision</dt>
-                      <dd>{corpusVersion}</dd>
+                      <dd>
+                        {custom
+                          ? "Stored in this browser; indexed per search."
+                          : corpusVersion}
+                      </dd>
                     </dl>
                   </details>
                 </>
@@ -636,7 +734,10 @@ export default function CampusDesk({
           ))}
         </div>
         <div className="dialog-footer">
-          <span>{sections.length} sections · Synthetic data</span>
+          <span>
+            {activeSections.length} sections ·{" "}
+            {custom ? "Added on this device" : `Official handbook v${school.version}`}
+          </span>
           {selectedSource ? (
             <button
               className="text-button"
