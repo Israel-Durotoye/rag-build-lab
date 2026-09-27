@@ -4,7 +4,26 @@ Ten separately runnable demos sharing one inspectable Python retrieval core. Bui
 
 **Working baseline:** all ten apps perform real retrieval on included synthetic data without keys or model downloads. The offline mode returns source excerpts, not an invented AI answer. Enable an installed local Ollama model for generation; optionally add Sentence Transformers for semantic retrieval and reranking.
 
-## Quick start
+## Campus Desk website — TypeScript / Next.js
+
+The first demo now has a TypeScript website ready to build on Vercel. From the
+repository root, using Node.js 22:
+
+```bash
+cd demos/01-campus-desk
+npm ci
+npm run dev
+```
+
+Open http://localhost:3000. Search, source previews, citation validation and the
+optional model adapters run in TypeScript. Default source search requires no
+keys, database, Python server or model download. See [setup, architecture and
+Vercel deployment instructions](demos/01-campus-desk/WEB_README.md). Vercel's Root
+Directory should be `demos/01-campus-desk` and its framework preset should be Next.js.
+Each demo's frontend, backend, dependencies, and build configuration live inside
+that demo's own folder.
+
+## Python demos quick start
 
 Python 3.11 or newer and SQLite with FTS5 are required. Run commands from the repository root.
 

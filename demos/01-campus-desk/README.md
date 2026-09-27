@@ -1,31 +1,157 @@
 # Campus Desk
 
-Session 3 · A student looking for a detail in a short handbook.
+**Website:** from this directory (`demos/01-campus-desk`), run `npm ci` then
+`npm run dev`. Open http://localhost:3000. The entire TypeScript frontend and
+backend live here. See the [web setup and Vercel guide](WEB_README.md).
+The Python/Streamlit commands below remain available as the original baseline.
+The evaluation questions and answer-support checklist apply to both versions.
 
-## Run from repository root
+A handbook search prototype using six fictional sections. The default is real
+SQLite FTS5 retrieval with source excerpts, **not generated answers**. Read the
+handbook inside the app; selected passages appear beside the result.
+`manifest.json` declares the fixture synthetic.
+
+## Setup and run
+
+Python 3.11+ with SQLite FTS5 is required. From the repository root:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-tested.txt -e '.[ui,test]'
 python -m streamlit run demos/01-campus-desk/app.py --server.address 127.0.0.1
-python -m rag_core.cli --config demos/01-campus-desk/config.json ask "When does the library close?"
+```
+
+Open http://127.0.0.1:8501. On Windows, create the environment with `py -m venv
+.venv` and activate it with `.venv\Scripts\Activate.ps1` in PowerShell. After
+installation, the app also runs from its own directory with `python -m streamlit
+run app.py --server.address 127.0.0.1`.
+
+The CLI needs no third-party packages when run from the repository root:
+
+```bash
+python -m rag_core.cli --config demos/01-campus-desk/config.json ask 'When does the library close?'
 python -m rag_core.cli --config demos/01-campus-desk/config.json evaluate
 ```
 
-The default is real keyword retrieval with source excerpts, **not generated answers**. See the root README to enable local generation or semantic retrieval.
+The root `.env.example` documents optional provider settings. Export settings in
+your shell; the app does not automatically load `.env` files. The default needs
+no credentials, model download or network service.
 
-## Demo sequence
+## Optional models
 
-Open the sample handbook, ask one supported question, expand the source, then ask an out-of-scope question. End with one observed limitation.
+For local generation, use an already installed Ollama model:
 
-## Scope and roadmap
+```bash
+export RAG_GENERATOR=ollama
+export OLLAMA_MODEL='YOUR_INSTALLED_MODEL'
+export OLLAMA_HOST=http://127.0.0.1:11434
+python -m streamlit run demos/01-campus-desk/app.py --server.address 127.0.0.1
+```
 
-One collection, one question box, an answer, source excerpts and an explicit insufficient-evidence state. No accounts, crawling or document management dashboard.
+For semantic retrieval, install `python -m pip install -e '.[semantic]'`, set
+`RAG_EMBEDDING_MODEL` to a compatible Sentence Transformers model name or local
+model path, and restart the app. Dense and hybrid choices then appear alongside
+keyword search. A remote model identifier may download weights on first use.
+The shared adapter uses `encode_query` and `encode_document`; use a current
+Sentence Transformers version supporting both. No paid model is selected.
+Live model inference is not part of the offline verification record.
 
-The current feature matrix in `docs/STATUS.md` distinguishes shipped baseline features from future work in the original brief. Small synthetic fixtures intentionally keep this runnable on a laptop.
+## Inspectable pipeline
 
-## Checks to expand before showcasing
+`Pipeline.ingest()` loads `corpus.json`; `Pipeline.retrieve()` searches without
+generating; `Pipeline.respond()` handles evidence and optional generation;
+`Pipeline.ask()` composes those steps. Section chunking preserves titles and IDs.
+Stored chunks include document ID, chunk ID, source location, document version
+and content hash. Responses include the corpus fingerprint and citation labels
+built from stored metadata. `Pipeline.preview(source_id)` opens the stored text.
 
-Five answerable questions have known supporting sections. Two unanswerable questions must not receive invented handbook facts. A source reference must open the stored section. A clean setup must reproduce the demo.
+No matches produce `insufficient_evidence` without a model call. A model can also
+report insufficient evidence. Model citations must identify retrieved chunks;
+unknown IDs, IDs outside selected context and missing answer citations fail
+validation, leaving passages available. Valid IDs do not establish factual support
+for every claim. The app exposes the actual returned status and evidence.
 
-## Data
+## Seven fixed evaluation questions
 
-Read `manifest.json`. All fixtures here are synthetic. Replace them only with material you have permission to use. No private uploads are provided.
+| Question | Expected supporting section or status |
+|---|---|
+| When does the library close? | `library` |
+| How many books may I borrow, and for how long? | `borrowing` |
+| What is required before laboratory access? | `lab` |
+| When does course registration close? | `registration` |
+| How do I request housing? | `housing` |
+| How much is tuition? | Insufficient evidence |
+| Where does the shuttle stop? | Insufficient evidence |
+
+These are fixed development checks in `evaluation.json`, not a held-out benchmark.
+Section IDs map to `handbook:<section>:0`. Supported cases check that the section
+is among returned passages; they do not measure generated answer accuracy.
+
+## Manual answer-support checklist
+
+- Confirm the synthetic-data notice and whether generation is enabled.
+- Ask each fixed question; inspect the selected passage, section and version.
+- For library hours, preserve weekdays (20:00) versus weekend access (16:00).
+- For borrowing, retain the three-book/fourteen-day limit and reference-book
+  exception when relevant.
+- If generation is enabled, match every factual claim to its cited passage.
+  Verify each displayed reference matches a stored section. Mark plausible but
+  unsupported answers as failures even when their citation IDs are valid.
+- Ask both absent-topic questions; verify no invented fee or shuttle stop appears.
+- Ask “What are the library late fees?” The fixture does not answer this. Offline
+  mode may retrieve passages but must not turn them into a fee answer. A generated
+  fee amount is an answer-support failure.
+- Reset or reindex; verify the old result and follow-up context are cleared.
+- Record the actual model name (if any), question, passages and observed failure.
+  Do not substitute the automated retrieval score for this review.
+
+## 75-second demo script
+
+| Time | Action and narration |
+|---|---|
+| 0–10 s | Open Campus Desk. “This is a fictional handbook. This run uses source search, so the passages are retrieved evidence, not an AI-written answer.” |
+| 10–20 s | Expand “Read the fictional handbook”; show Library hours, then collapse it. |
+| 20–40 s | Search “When does the library close?” Point to the passage beside the result and its stored citation label. Read the weekday/weekend distinction. |
+| 40–55 s | Search “How much is tuition?” Show insufficient evidence and no passages. |
+| 55–70 s | Search “What are the library late fees?” Explain that keyword overlap retrieves passages even though the handbook contains no fee amount. |
+| 70–75 s | “Next is testing answerability on paraphrases and misleading matches. Seven fixture checks are not a claim of broad accuracy.” |
+
+For a generation-enabled recording, name the actual model, explain that the
+answer is generated, and perform the manual claim-support review first.
+
+## Verification and limits
+
+```bash
+python -m pytest -q
+python scripts/evaluate_all.py
+python -m pip check
+```
+
+See [RUN_RESULTS.md](RUN_RESULTS.md) for actual local results and tested versions.
+The UI defaults to an in-memory index; the CLI accepts `--db .state/campus.sqlite`
+before `ask` to persist metadata and FTS5. Reindex after changing fixture files.
+There is no upload/PDF parser, production authentication, answer cache or
+calibrated semantic answerability threshold. Keyword matching can miss paraphrases
+and return irrelevant passages. Dense retrieval also needs relevance evaluation.
+
+## Deployment instructions (not deployed)
+
+On a host you control, copy the repository, create a Python environment and install
+the dependencies above. Start from the repository root:
+
+```bash
+python -m streamlit run demos/01-campus-desk/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+```
+
+That binds all host interfaces. Restrict network access or put an authenticated
+TLS reverse proxy in front before sharing outside a trusted network. Keep this
+synthetic fixture for the prototype. Configure provider settings on the host and
+ensure any selected model service is reachable there. Each browser session has
+its own in-memory index. No hosting resources have been created.
+
+## Official API references checked
+
+- [Streamlit columns](https://docs.streamlit.io/develop/api-reference/layout/st.columns)
+- [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
+- [Sentence Transformer encoding API](https://sbert.net/docs/package_reference/sentence_transformer/model.html)

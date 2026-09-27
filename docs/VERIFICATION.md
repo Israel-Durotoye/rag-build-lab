@@ -1,5 +1,14 @@
 # Verification record
 
+Campus Desk's TypeScript migration was verified from `demos/01-campus-desk`:
+24 web tests, 7/7 web evaluation questions, type checking, linting and the production
+build passed. See [web run results](../demos/01-campus-desk/WEB_RUN_RESULTS.md).
+
+Campus Desk was extended and checked locally on 27 September 2026: 61 tests and
+27/27 retrieval cases passed, with real-browser verification and a SQLite
+cross-thread rerun fix. See [the detailed local record](../demos/01-campus-desk/RUN_RESULTS.md).
+The earlier baseline record follows for context.
+
 Checked 26 September 2026 in the build environment:
 
 - Python 3.12.14, SQLite 3.53.1, Streamlit 1.64.0, pytest 9.1.1.

@@ -7,6 +7,11 @@ from .core import Index
 from .providers import Ollama, SentenceEmbeddings, CrossEncoderReranker
 
 
+def citation_label(chunk):
+    """Build a human-readable reference from stored metadata, never model text."""
+    return f"{chunk.doc_id} · {chunk.title} · {chunk.location} · v{chunk.metadata['version']}"
+
+
 def load_config(path):
     path = Path(path).resolve()
     config = json.loads(path.read_text())
@@ -48,9 +53,10 @@ class Pipeline:
 
     def respond(self, question, sources):
         base = {'mode':'source_search','answer':None,'citations':[], 'sources':[asdict(c) for c in sources],
+                'citation_labels':{c.id:citation_label(c) for c in sources},
                 'corpus_version':self.index.version, 'notice':'Retrieved passages only; no generated answer.'}
         if not sources:
-            return {**base,'status':'insufficient_evidence','notice':'No matching sources. Try a more specific question.'}
+            return {**base,'status':'insufficient_evidence','notice':'Insufficient evidence: no matching sources in this collection. Try a more specific question.'}
         if self.generator is None: return {**base,'status':'sources_found'}
         try:
             raw = self.generator.generate(question,sources)
@@ -60,10 +66,11 @@ class Pipeline:
             if type(raw.get('insufficient')) is not bool or not isinstance(answer,str) or not isinstance(citations,list):
                 raise ValueError('Invalid generation schema')
             if any(not isinstance(i,str) for i in citations): raise ValueError('Invalid citation type')
+            allowed = {c.id for c in sources}
+            if not set(citations) <= allowed: raise ValueError('Unknown citations')
             if raw['insufficient']:
                 return {**base,'status':'insufficient_evidence','notice':'The model reported insufficient evidence.'}
-            allowed = {c.id for c in sources}
-            if not answer.strip() or not citations or not set(citations) <= allowed:
+            if not answer.strip() or not citations:
                 raise ValueError('Empty answer or missing/unknown citations')
             return {**base,'status':'generated','mode':'generated','answer':answer,'citations':citations,
                     'usage':raw.get('usage',{}),'notice':'Citation IDs validated; factual support still needs human review.'}

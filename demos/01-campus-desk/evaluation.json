@@ -4,7 +4,27 @@
     "expected_source": "handbook:library:0"
   },
   {
-    "question": "xylophonemeteoritezz",
+    "question": "How many books may I borrow, and for how long?",
+    "expected_source": "handbook:borrowing:0"
+  },
+  {
+    "question": "What is required before laboratory access?",
+    "expected_source": "handbook:lab:0"
+  },
+  {
+    "question": "When does course registration close?",
+    "expected_source": "handbook:registration:0"
+  },
+  {
+    "question": "How do I request housing?",
+    "expected_source": "handbook:housing:0"
+  },
+  {
+    "question": "How much is tuition?",
+    "expected_status": "insufficient_evidence"
+  },
+  {
+    "question": "Where does the shuttle stop?",
     "expected_status": "insufficient_evidence"
   }
 ]

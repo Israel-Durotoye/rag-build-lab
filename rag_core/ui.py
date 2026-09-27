@@ -1,4 +1,5 @@
 from pathlib import Path
+from contextlib import nullcontext
 from .pipeline import load_config, from_environment
 from .workflows import compare, graph_path, calculate_difference, bounded_search
 
@@ -26,6 +27,15 @@ def run(config_path):
         st.session_state.pop('result:'+key,None)
     if st.sidebar.button('Reindex fixture files'):
         pipe.ingest(); st.session_state.pop('result:'+key,None)
+        st.session_state.pop('previous:'+key,None)
+    if kind=='campus':
+        with st.expander('Read the fictional handbook'):
+            for doc in pipe.documents:
+                st.caption(doc['title']+' · version '+doc.get('version','1'))
+                for section in doc['sections']:
+                    st.subheader(section['title'])
+                    st.text(section['text'])
+                    st.caption('Section: '+section['id'])
     identity=None; filters={}
     if kind=='support':
         st.warning('Local identity simulation only. Do not expose this app publicly or use private documents.')
@@ -53,19 +63,32 @@ def run(config_path):
             result=pipe.ask(q,filters,identity,mode,st.session_state.get('previous:'+key))
             st.session_state['result:'+key]=result
             st.session_state['previous:'+key]=q
-        except (ValueError,PermissionError,OSError) as exc: st.error(str(exc))
+        except (ValueError,PermissionError,OSError) as exc:
+            st.session_state.pop('result:'+key,None)
+            st.error(str(exc))
     result=st.session_state.get('result:'+key)
     if result:
-        st.write(result['notice'])
-        if result.get('answer'): st.write(result['answer'])
-        for c in result.get('sources',[]):
-            # Re-authorize previews; results are not a bypass around current grants.
-            try: c=pipe.preview(c['id'],identity)
-            except PermissionError: continue
-            with st.expander(c['title']+' — '+c['location']):
-                st.code(c['text'],language=None)
-                st.caption('Source ID: '+c['id'])
-                st.json(c['metadata'])
+        answer_panel,evidence_panel=st.columns(2) if kind=='campus' else (nullcontext(),nullcontext())
+        with answer_panel:
+            if kind=='campus': st.subheader('Answer' if result.get('answer') else 'Search result')
+            if result['status']=='insufficient_evidence': st.warning(result['notice'])
+            else: st.write(result['notice'])
+            if result.get('answer'): st.write(result['answer'])
+            for source_id in result.get('citations',[]):
+                st.caption('Cited: '+result['citation_labels'][source_id])
+            if kind=='campus' and result.get('sources') and not result.get('answer'):
+                st.caption('A matching passage may not answer your question. Check the evidence beside this result.')
+        with evidence_panel:
+            if kind=='campus': st.subheader('Selected passages')
+            for c in result.get('sources',[]):
+                # Re-authorize previews; results are not a bypass around current grants.
+                try: c=pipe.preview(c['id'],identity)
+                except PermissionError: continue
+                label=result.get('citation_labels',{}).get(c['id'],c['title']+' — '+c['location'])
+                with st.expander(label,expanded=kind=='campus'):
+                    st.text(c['text'])
+                    st.caption('Source ID: '+c['id'])
+                    st.json(c['metadata'],expanded=False)
         with st.expander('Retrieval details'): st.json(result)
     if kind in {'paper','policy'}:
         st.subheader('Compare source documents')

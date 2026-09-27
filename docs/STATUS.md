@@ -2,9 +2,15 @@
 
 All ten directories run independently against the same core. The Codex briefs preserve the larger roadmap targets; they are instructions for future iterations, not release claims.
 
+Campus Desk also has a TypeScript/Next.js website inside `demos/01-campus-desk` for
+Vercel. It shares the original JSON fixture and evaluation cases, uses TypeScript
+BM25 instead of SQLite FTS5, and includes optional Ollama generation/embeddings.
+See [the web migration guide](../demos/01-campus-desk/WEB_README.md). The other nine demos retain
+their Python/Streamlit interfaces.
+
 | Demo | Implemented now | Still to build or measure |
 |---|---|---|
-| Campus Desk | Synthetic handbook, retrieval, inspectable evidence, optional generation, absent-term check | Larger labelled question set; robust semantic answerability |
+| Campus Desk | Synthetic handbook viewer, side-by-side evidence, metadata citation labels, optional generation, seven fixed questions, answer-support checklist and 75-second script | Held-out paraphrase/near-miss evaluation; robust semantic answerability; live model verification |
 | Study Companion | Fixed/section chunking, original-question follow-up, reset | Parent-section expansion, controlled chunking comparison |
 | Manual Finder | Device filter, mandatory device choice, optional dense/hybrid/RRF | Larger identifier/paraphrase evaluation |
 | Repo Guide | Snapshot fixture, commit-pinned Git importer, line citations, optional reranker | AST chunking, real model comparison and latency experiment |

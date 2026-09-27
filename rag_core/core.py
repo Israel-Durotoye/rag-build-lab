@@ -3,7 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone, date
 from hashlib import sha256
+from functools import wraps
 from pathlib import Path
+from threading import RLock
 import json
 import math
 import re
@@ -47,12 +49,24 @@ def chunk_document(doc: dict, mode: str = 'section', size: int = 120) -> list[Ch
     return result
 
 
+def synchronized(method):
+    """Serialize whole index operations, including nested reads during a write."""
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return wrapped
+
+
 class Index:
     """One collection per SQLite database; replace is atomic and removes old chunks."""
     def __init__(self, path: str | Path = ':memory:'):
         if str(path) != ':memory:':
             Path(path).parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(str(path))
+        # Streamlit reruns a session on new script threads. Keep its connection
+        # reusable while serializing operations (not just individual SQL calls).
+        self._lock = RLock()
+        self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.executescript('''
           CREATE TABLE IF NOT EXISTS chunks(id TEXT PRIMARY KEY, doc_id TEXT, title TEXT, text TEXT, location TEXT, metadata TEXT);
@@ -60,9 +74,11 @@ class Index:
           CREATE TABLE IF NOT EXISTS state(key TEXT PRIMARY KEY, value TEXT);
         ''')
 
+    @synchronized
     def close(self):
         self.db.close()
 
+    @synchronized
     def replace(self, documents: list[dict], mode='section', size=120):
         chunks = [c for d in documents for c in chunk_document(d, mode, size)]
         if len({c.id for c in chunks}) != len(chunks):
@@ -78,10 +94,12 @@ class Index:
             self.db.execute('INSERT OR REPLACE INTO state VALUES(?,?)', ('refreshed', datetime.now(timezone.utc).isoformat()))
 
     @property
+    @synchronized
     def version(self):
         r = self.db.execute("SELECT value FROM state WHERE key='version'").fetchone()
         return r[0] if r else ''
 
+    @synchronized
     def delete(self, doc_id: str):
         with self.db:
             self.db.execute('DELETE FROM search WHERE id IN (SELECT id FROM chunks WHERE doc_id=?)', (doc_id,))
@@ -110,15 +128,18 @@ class Index:
     def unpack(r):
         return Chunk(r['id'],r['doc_id'],r['title'],r['text'],r['location'],json.loads(r['metadata']))
 
+    @synchronized
     def chunks(self, filters=None, tenants=None):
         return [c for r in self.db.execute('SELECT * FROM chunks ORDER BY id')
                 if self.allowed(c := self.unpack(r), filters or {}, tenants)]
 
+    @synchronized
     def source(self, source_id, filters=None, tenants=None):
         r = self.db.execute('SELECT * FROM chunks WHERE id=?', (source_id,)).fetchone()
         if r and self.allowed(c := self.unpack(r), filters or {}, tenants): return c
         return None
 
+    @synchronized
     def search(self, question, k=4, mode='keyword', embedder=None, filters=None, tenants=None, reranker=None):
         if mode not in {'keyword','dense','hybrid'} or not 1 <= k <= 50:
             raise ValueError('Invalid retrieval mode or k')

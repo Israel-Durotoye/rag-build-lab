@@ -7,3 +7,10 @@ __pycache__/
 .state/
 *.sqlite*
 reports/
+node_modules/
+.next/
+.vercel/
+out/
+*.tsbuildinfo
+.env.local
+.env.*.local
