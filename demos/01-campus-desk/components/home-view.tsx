@@ -106,8 +106,9 @@ export function HomeView() {
             </p>
             {!health && (
               <p className="error">
-                The Python backend isn&rsquo;t reachable. Start it with{" "}
-                <code>npm run api</code> and reload.
+                The Campus Guide backend isn&rsquo;t reachable. If it is
+                starting up, this page reconnects on its own; when running
+                locally, start it with <code>npm run api</code>.
               </p>
             )}
           </div>

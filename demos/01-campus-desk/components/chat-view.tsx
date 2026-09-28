@@ -261,9 +261,10 @@ export function ChatView() {
       <div className="chat">
         {!health && (
           <p className="banner" role="alert">
-            <AlertTriangle size={15} aria-hidden /> The Python backend
-            isn&rsquo;t reachable. Start it with <code>npm run api</code> and
-            reload.
+            <AlertTriangle size={15} aria-hidden /> The Campus Guide backend
+            isn&rsquo;t reachable. If it is starting up, this page reconnects on
+            its own; when running locally, start it with{" "}
+            <code>npm run api</code>.
           </p>
         )}
         {health && documents && documents.length === 0 && (
