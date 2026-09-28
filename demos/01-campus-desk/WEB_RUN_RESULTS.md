@@ -333,3 +333,43 @@ instead the assembled Space folder (29 files) was installed into a fresh Python
 3.11 environment, the model-bake step ran (384 dimensions) and the API started
 from that tree with the baked model, reporting `embeddings: ready`. Backend
 tests: 100 passed. No Space was created; deployment is the owner's step.
+
+### Frontend/backend sync for the hosted deployment — September 28, 2026
+
+Goal: the whole application runs from the Vercel domain with the backend on a
+Hugging Face Space. Checked on this Mac; no Space or Vercel project was created.
+
+- `check-deploy.sh` added. It runs the checks the browser makes (`/api/status`
+  header and body version, a workspace route, `/api/docs`; with `--full` an
+  NDJSON upload, an NDJSON chat turn and a delete) against any origin.
+- `lib/contract.ts` now classifies a reply: a missing contract header on an
+  error reply is "unreachable" (proxy or host error page, sleeping or private
+  Space, wrong rewrite target), while a wrong or missing header on a successful
+  reply is "incompatible". Before, both showed "backend is out of date".
+- The provider keeps checking `/api/status` while the backend is unreachable or
+  its embedding model is loading, with backoff (3 s doubling to 30 s), so a
+  page that rendered before a Space woke up recovers without a reload.
+- Gradio 6.28.0 was installed in a scratch environment: `gr.Server` (a FastAPI
+  subclass), `launch(_app=...)`, `theme`/`css` on `launch`, `api_visibility`
+  and the `/gradio_api` prefix all exist, so `hf-space/app.py` uses real APIs.
+- `hf-space/app.py` was run locally with Gradio mounted (no key, embeddings and
+  OCR off): `/api/status` answered with `X-Campus-API-Version: 2` through the
+  `/api` → `/campus-api` rewrite, the Gradio homepage and `/gradio_api/info`
+  answered 200, and `./check-deploy.sh http://127.0.0.1:7861 --full` passed
+  (upload: reading > text > chunking > indexing; chat: stage, retrieval,
+  augmentation, done; status `sources_only`).
+- The frontend was built with `CAMPUS_API_URL=http://127.0.0.1:7861` and
+  served with `next start`; `./check-deploy.sh http://127.0.0.1:3123 --full`
+  passed through the Next.js proxy with both streams intact, and the
+  server-rendered badge read "Search only". With the backend stopped, the page
+  still rendered (badge "Offline"), the proxied `/api/status` returned 500
+  without the contract header, and the check script reported it as
+  unreachable.
+- `deploy-space.sh` now warns when the Space stays private: a private Space's
+  `hf.space` URL needs a Hugging Face login the Vercel proxy cannot supply.
+- Backend tests: 101 passed. Lint, TypeScript, 12 web tests and the
+  production build pass.
+
+Not verified: a real Space (ZeroGPU flavour availability, cold-start time,
+`preload=False` leaving `embeddings: loading` until the first upload), Vercel's
+proxy limits for a 40 MB upload and a 40 s streamed answer, and the live model.

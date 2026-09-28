@@ -3,42 +3,38 @@ title: Campus Guide API
 emoji: 🎓
 colorFrom: green
 colorTo: gray
-sdk: docker
-app_port: 7860
+sdk: gradio
+sdk_version: 6.28.0
+app_file: app.py
+python_version: "3.12"
+startup_duration_timeout: 30m
 pinned: false
-license: mit
-short_description: Python backend for Campus Guide, a cited-answer guide built from a school's documents
+short_description: Cited answers from a school's own documents
 ---
 
 # Campus Guide API
 
-The Python backend for [Campus Guide](https://github.com/Israel-Durotoye/rag-build-lab/tree/main/demos/01-campus-desk):
-document extraction (PyMuPDF, RapidOCR, python-docx), hybrid retrieval
-(FastEmbed embeddings + stemmed SQLite FTS5 via `rag_core`, fused with RRF) and
-streamed, citation-checked answers from DeepSeek through AgentRouter.
+The Python backend for [Campus Guide](https://github.com/Israel-Durotoye/rag-build-lab/tree/main/demos/01-campus-desk),
+with a small operational demo on the Space homepage. The full Next.js frontend
+uses its versioned FastAPI routes for document extraction, hybrid retrieval and
+streamed citation-checked answers.
 
-Once the Space is running, its API docs are at `/api/docs` and its health check
-at `/api/health`.
+API documentation is at `/api/docs`, deployment status is at `/api/status`, and every
+response carries `X-Campus-API-Version` so the frontend can reject a stale
+backend rather than silently using an incompatible contract.
 
-## Settings
+## Configuration
 
-Add these under **Settings → Variables and secrets** on the Space:
+Set `AGENTROUTER_API_KEY` as a Space secret. Without it, document extraction
+and retrieval still work, but generated answers, profiles and overviews are
+disabled. Optional variables:
 
-| Name | Kind | Value |
-|---|---|---|
-| `AGENTROUTER_API_KEY` | Secret | your AgentRouter key (without it the API retrieves passages but writes no answers) |
-| `AGENTROUTER_MODEL` | Variable | `deepseek-v4-flash` (default) |
-| `CAMPUS_CORS_ORIGINS` | Variable | only if a browser will call this Space directly, e.g. `https://your-frontend.vercel.app` |
-| `CAMPUS_DATA_DIR` | Variable | `/data` if you enable persistent storage; otherwise leave unset (documents are lost when the Space restarts) |
+- `AGENTROUTER_MODEL` — defaults to `deepseek-v4-flash`.
+- `CAMPUS_CORS_ORIGINS` — needed only for direct cross-origin browser calls;
+  the recommended Next.js proxy needs no CORS setting.
+- `CAMPUS_DATA_DIR` — defaults to ephemeral Space storage. Persistent storage
+  is a paid option and is not enabled by this deployment.
 
-The frontend (Next.js) proxies `/api/*` to this Space: set `CAMPUS_API_URL` to
-`https://<owner>-<space>.hf.space` before building it.
-
-## Notes
-
-- Free Spaces sleep after inactivity; the first request after a sleep takes
-  about half a minute while the container starts. The embedding model is baked
-  into the image, so no download happens at start.
-- Uploads are processed one at a time; a 78-page handbook takes about 20 s on
-  the free CPU tier.
-- PyMuPDF is AGPL-3.0 licensed; the source of this backend is public.
+This is a Gradio ZeroGPU Space because free Hugging Face accounts cannot create
+Docker or CPU Basic Spaces. The backend itself is CPU-only and normal use does
+not request a GPU allocation.

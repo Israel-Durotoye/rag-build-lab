@@ -9,6 +9,7 @@ import type {
   SettingsResponse,
   UploadProgress,
 } from "./types";
+import { API_VERSION_HEADER, backendProblem } from "./contract";
 
 /**
  * Browser-side client for the Python backend. Next.js proxies /api/* to it.
@@ -42,7 +43,9 @@ export function workspaceId(): string {
 export class ApiError extends Error {}
 
 const OFFLINE =
-  "The Campus Guide backend isn't reachable. Check that the Python server is running.";
+  "The Campus Guide backend isn't reachable. It may still be starting; try again in a moment.";
+const INCOMPATIBLE =
+  "The Campus Guide backend is out of date. Deploy the backend that belongs with this frontend.";
 
 async function request(
   path: string,
@@ -59,6 +62,12 @@ async function request(
     if ((cause as Error)?.name === "AbortError") throw cause;
     throw new ApiError(OFFLINE);
   }
+  const problem = backendProblem({
+    ok: response.ok,
+    versionHeader: response.headers.get(API_VERSION_HEADER),
+  });
+  if (problem === "incompatible") throw new ApiError(INCOMPATIBLE);
+  if (problem === "unreachable") throw new ApiError(OFFLINE);
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
       error?: string;

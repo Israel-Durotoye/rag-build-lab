@@ -3,6 +3,7 @@ import json
 import re
 import sys
 import uuid
+import zlib
 from pathlib import Path
 from types import SimpleNamespace as NS
 
@@ -37,7 +38,9 @@ class FakeEmbedder:
         for word in re.findall(r'[a-z]+', text.lower()):
             word = SYNONYMS.get(word, word)
             if len(word) > 3:
-                vector[hash(word) % self.dimensions] += 1
+                # hash() is randomised per process; a stable checksum keeps
+                # retrieval contract tests deterministic across test runs.
+                vector[zlib.crc32(word.encode()) % self.dimensions] += 1
         norm = np.linalg.norm(vector)
         return vector / norm if norm else vector
 
@@ -103,11 +106,12 @@ def settings(tmp_path, **overrides):
     return Settings(**{**base, **overrides})
 
 
-def make_client(tmp_path, *, model=None, embedder='fake', **overrides):
+def make_client(tmp_path, *, model=None, embedder='fake', app_options=None, **overrides):
     from fastapi.testclient import TestClient
 
     app = create_app(settings(tmp_path, **overrides), model=model,
-                     embedder=FakeEmbedder() if embedder == 'fake' else embedder, preload=False)
+                     embedder=FakeEmbedder() if embedder == 'fake' else embedder, preload=False,
+                     **(app_options or {}))
     return TestClient(app)
 
 

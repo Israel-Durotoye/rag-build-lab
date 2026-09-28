@@ -3,10 +3,10 @@
 Run from demos/01-campus-desk:
     .venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 
-Every route except /api/health needs an ``X-Workspace-Id`` header: 32 hex
+Every route except /api/status (and the legacy /api/health alias) needs an ``X-Workspace-Id`` header: 32 hex
 characters the browser generates once and keeps.
 
-    GET    /api/health                   capabilities
+    GET    /api/status                   capabilities
     GET    /api/documents                documents in the workspace
     POST   /api/documents                upload (multipart) -> NDJSON progress -> document
     GET    /api/documents/{id}           the full breakdown of one document
@@ -51,6 +51,8 @@ from .settings import Settings, load_env_file
 from .store import DOCUMENT_ID, DocumentStore, WorkspaceError, summary
 
 log = logging.getLogger('campus_guide')
+API_VERSION = 2
+API_VERSION_HEADER = 'X-Campus-API-Version'
 MAX_JSON_BYTES = 256 * 1024
 MAX_MESSAGE_CHARS = 4000
 UNSET = object()
@@ -124,7 +126,10 @@ async def read_json(request: Request) -> dict | JSONResponse:
 
 
 def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET, ocr=UNSET,
-               preload: bool = True) -> FastAPI:
+               preload: bool = True, app_factory=FastAPI, route_prefix: str = '/api',
+               public_prefix: str | None = None) -> FastAPI:
+    route_prefix = '/' + route_prefix.strip('/')
+    public_prefix = '/' + (public_prefix or route_prefix).strip('/')
     if settings is None:
         load_env_file()
         settings = Settings.from_env()
@@ -152,17 +157,22 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
         yield
         store.close()
 
-    app = FastAPI(title='Campus Guide API', docs_url='/api/docs', openapi_url='/api/openapi.json', redoc_url=None,
-                  lifespan=lifespan)
+    app = app_factory(title='Campus Guide API', docs_url=f'{route_prefix}/docs',
+                      openapi_url=f'{route_prefix}/openapi.json', redoc_url=None, lifespan=lifespan)
     app.state.services = services
     origins = [o.strip() for o in os.environ.get('CAMPUS_CORS_ORIGINS', '').split(',') if o.strip()]
     if origins:
-        app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['*'], allow_headers=['*'])
+        app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['*'], allow_headers=['*'],
+                           expose_headers=[API_VERSION_HEADER])
 
     @app.middleware('http')
     async def no_store(request: Request, call_next):
+        path = request.scope.get('path', '')
+        if public_prefix != route_prefix and (path == public_prefix or path.startswith(public_prefix + '/')):
+            request.scope['path'] = route_prefix + path[len(public_prefix):]
         response = await call_next(request)
         response.headers.setdefault('Cache-Control', 'no-store')
+        response.headers[API_VERSION_HEADER] = str(API_VERSION)
         return response
 
     @app.exception_handler(RequestValidationError)
@@ -173,12 +183,14 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
     async def workspace_error(_request, exc):
         return failure(str(exc), 400)
 
-    @app.get('/api/health')
+    @app.get(f'{route_prefix}/health', include_in_schema=False)
+    @app.get(f'{route_prefix}/status')
     def health():
         semantic = 'ready' if embedder is not UNSET and embedder is not None else (
             'off' if embedder is None else embedding_status(settings.embeddings_enabled))
         return {
             'status': 'ok',
+            'apiVersion': API_VERSION,
             'name': 'Campus Guide',
             'generation': services.model is not None,
             'model': settings.model,
@@ -191,12 +203,12 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
             'limits': {'fileBytes': LIMITS['file_bytes'], 'documents': settings.max_documents},
         }
 
-    @app.get('/api/documents')
+    @app.get(f'{route_prefix}/documents')
     def list_documents(x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         return {'documents': [summary(r) for r in workspace.records()]}
 
-    @app.get('/api/documents/{doc_id}')
+    @app.get(f'{route_prefix}/documents/{{doc_id}}')
     def get_document(doc_id: str, x_workspace_id: str | None = Header(default=None)):
         record = store.workspace(x_workspace_id).record(doc_id) if DOCUMENT_ID.match(doc_id) else None
         if record is None:
@@ -204,14 +216,14 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
         return {**summary(record), **{k: record[k] for k in ('extraction', 'chunking', 'index', 'embeddings', 'timings',
                                                               'chunks')}}
 
-    @app.delete('/api/documents/{doc_id}')
+    @app.delete(f'{route_prefix}/documents/{{doc_id}}')
     def delete_document(doc_id: str, x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         if not DOCUMENT_ID.match(doc_id) or not workspace.delete(doc_id):
             return failure('Document not found.', 404)
         return {'deleted': doc_id}
 
-    @app.post('/api/documents')
+    @app.post(f'{route_prefix}/documents')
     async def upload(file: UploadFile = File(...), x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         try:
@@ -230,7 +242,7 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
 
         return ndjson(work)
 
-    @app.post('/api/documents/{doc_id}/overview')
+    @app.post(f'{route_prefix}/documents/{{doc_id}}/overview')
     async def overview(doc_id: str, x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         record = workspace.record(doc_id) if DOCUMENT_ID.match(doc_id) else None
@@ -250,14 +262,14 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
                 workspace.save({**current, 'overview': result}, replace_vectors=False)
         return result
 
-    @app.get('/api/settings')
+    @app.get(f'{route_prefix}/settings')
     def get_settings(x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         current = guide_settings(workspace.settings())
         names = [r['name'] for r in workspace.records()]
         return {'settings': current, 'defaults': DEFAULTS, 'prompt': system_prompt(current, names)}
 
-    @app.put('/api/settings')
+    @app.put(f'{route_prefix}/settings')
     async def put_settings(request: Request, x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         body = await read_json(request)
@@ -275,13 +287,13 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
 
     profile_locks: dict[str, threading.Lock] = {}
 
-    @app.get('/api/profile')
+    @app.get(f'{route_prefix}/profile')
     def get_profile(x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         return {'profile': workspace.profile(), 'documents': len(workspace.records()),
                 'generation': services.model is not None}
 
-    @app.post('/api/profile')
+    @app.post(f'{route_prefix}/profile')
     async def make_profile(x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         if not workspace.records():
@@ -316,7 +328,7 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
             return failure('Invalid document selection.', 400)
         return mode, ids
 
-    @app.post('/api/chat')
+    @app.post(f'{route_prefix}/chat')
     async def chat(request: Request, x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         body = await read_json(request)
@@ -348,7 +360,7 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
 
         return ndjson(work)
 
-    @app.post('/api/retrieve')
+    @app.post(f'{route_prefix}/retrieve')
     async def retrieve_route(request: Request, x_workspace_id: str | None = Header(default=None)):
         workspace = store.workspace(x_workspace_id)
         body = await read_json(request)

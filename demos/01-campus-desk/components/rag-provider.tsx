@@ -20,6 +20,7 @@ import {
   uploadDocument,
   writeOverview,
 } from "@/lib/api";
+import { isCompatibleHealth } from "@/lib/contract";
 import type {
   ChatEvent,
   DocumentSummary,
@@ -146,6 +147,7 @@ export function RagProvider({
     initialHealth?.retrieval.default ?? "hybrid",
   );
   const [draft, setDraft] = useState("");
+  const [statusTick, setStatusTick] = useState(0);
   const controller = useRef<AbortController | null>(null);
   const profileRequest = useRef<Promise<void> | null>(null);
 
@@ -196,19 +198,36 @@ export function RagProvider({
     void refreshProfile();
   }, [refreshDocuments, refreshProfile]);
 
-  // While the embedding model loads on a fresh server, check back until it's ready.
+  // Keep checking the backend while it is unreachable (the page rendered
+  // before a hosted backend woke up) or while its embedding model is still
+  // loading. Each failed check waits a little longer, up to half a minute.
+  const statusChecks = useRef(0);
   useEffect(() => {
-    if (health?.embeddings.status !== "loading") return;
+    const waiting = !health || health.embeddings.status === "loading";
+    if (!waiting) {
+      statusChecks.current = 0;
+      return;
+    }
+    const delay = Math.min(3000 * 2 ** statusChecks.current, 30000);
     const timer = window.setTimeout(async () => {
+      statusChecks.current += 1;
       try {
-        const response = await fetch("/api/health", { cache: "no-store" });
-        if (response.ok) setHealth((await response.json()) as Health);
+        const response = await fetch("/api/status", { cache: "no-store" });
+        if (response.ok) {
+          const next: unknown = await response.json();
+          if (isCompatibleHealth(next)) {
+            statusChecks.current = 0;
+            setHealth(next);
+            return;
+          }
+        }
       } catch {
-        /* try again on the next render */
+        /* the backend is not up yet */
       }
-    }, 3000);
+      setStatusTick((n) => n + 1); // schedule the next attempt
+    }, delay);
     return () => window.clearTimeout(timer);
-  }, [health]);
+  }, [health, statusTick]);
 
   const requestOverview = useCallback(async (id: string) => {
     setOverviewPending((p) => ({ ...p, [id]: true }));

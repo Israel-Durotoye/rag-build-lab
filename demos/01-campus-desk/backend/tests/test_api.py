@@ -3,6 +3,7 @@ import json
 import pytest
 
 from backend import documents as documents_module
+from backend.app import API_VERSION, API_VERSION_HEADER
 from conftest import (CORPUS, HTTPError, docx_bytes, events, headers, load_corpus, make_client, model_with,  # noqa: F401
                       pdf_bytes, workspace_id)
 
@@ -22,13 +23,26 @@ def chat(client, ws, message, **body):
 def test_health_reports_capabilities(tmp_path):
     model, _ = model_with('ok')
     with make_client(tmp_path, model=model) as client:
-        body = client.get('/api/health').json()
+        response = client.get('/api/status')
+        body = response.json()
     assert body['status'] == 'ok' and body['generation'] is True and body['model'] == 'deepseek-v4-flash'
+    assert body['apiVersion'] == API_VERSION and response.headers[API_VERSION_HEADER] == str(API_VERSION)
     assert body['embeddings']['status'] == 'ready' and body['retrieval']['default'] == 'hybrid'
     assert body['ocr'] == {'engine': 'RapidOCR', 'enabled': True}
     with make_client(tmp_path, embedder=None) as client:
-        body = client.get('/api/health').json()
+        body = client.get('/api/status').json()
     assert body['generation'] is False and body['retrieval']['default'] == 'keyword'
+
+
+def test_public_api_prefix_can_rewrite_around_a_host_namespace(tmp_path):
+    options = {'route_prefix': '/campus-api', 'public_prefix': '/api'}
+    with make_client(tmp_path, embedder=None, app_options=options) as client:
+        public = client.get('/api/status')
+        internal = client.get('/campus-api/status')
+    assert public.status_code == 200 and public.json()['apiVersion'] == API_VERSION
+    assert public.headers[API_VERSION_HEADER] == str(API_VERSION)
+    assert internal.status_code == 200
+    assert client.get('/api/health').json()['apiVersion'] == API_VERSION
 
 
 @pytest.mark.parametrize('value', [None, 'short', 'Z' * 32, '../' + 'a' * 29])

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { RagProvider } from "@/components/rag-provider";
+import { isCompatibleHealth } from "@/lib/contract";
 import type { Health } from "@/lib/types";
 import "./globals.css";
 
@@ -44,11 +45,13 @@ async function backendHealth(): Promise<Health | null> {
     process.env.CAMPUS_API_URL || "http://127.0.0.1:8000"
   ).replace(/\/$/, "");
   try {
-    const response = await fetch(`${apiUrl}/api/health`, {
+    const response = await fetch(`${apiUrl}/api/status`, {
       cache: "no-store",
       signal: AbortSignal.timeout(3000),
     });
-    return response.ok ? ((await response.json()) as Health) : null;
+    if (!response.ok) return null;
+    const health: unknown = await response.json();
+    return isCompatibleHealth(health) ? health : null;
   } catch {
     return null;
   }

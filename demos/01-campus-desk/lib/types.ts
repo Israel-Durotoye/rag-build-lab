@@ -4,6 +4,7 @@ export type RetrievalMode = "hybrid" | "keyword" | "semantic";
 
 export interface Health {
   status: "ok";
+  apiVersion: number;
   name: string;
   generation: boolean;
   model: string;

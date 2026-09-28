@@ -22,6 +22,11 @@ browser ──► Next.js (UI, proxies /api/*) ──► FastAPI backend (Python
                                              └─ rag_core OpenAICompatible          DeepSeek via AgentRouter
 ```
 
+The frontend and backend share API contract version `2`. FastAPI returns it in
+the `/api/status` body and the `X-Campus-API-Version` header on every response;
+the Next.js client rejects an older or newer backend with an explicit deployment
+error. When the contract changes, update both constants and deploy both halves.
+
 Typefaces: Bricolage Grotesque for headings, Geist for text and Geist Mono for
 labels and code, all self-hosted at build time. The palette is warm paper with
 deep green, kept light; the layout is fluid (up to 1,720 px) with the
@@ -141,26 +146,38 @@ optionally `RAG_OPENAI_USER_AGENT` (`pip install -e '.[openai]'`).
 
 Nothing here deploys anything; publishing is a separate, deliberate step.
 
-### Backend on a Hugging Face Space (Docker)
+### Backend on a Hugging Face Space (Gradio + ZeroGPU)
 
-`hf-space/` holds the packaging: a `Dockerfile` (Python 3.11, `libgl1` for
-OpenCV, the embedding model baked into the image, port 7860), the Space card
-(`README.md` with the `sdk: docker` metadata) and `deploy-space.sh`, which
-assembles only what the image needs (`rag_core/`, `backend/` without tests,
-`pyproject.toml`) into a temporary folder and uploads it with the `hf` CLI.
+`hf-space/` holds a small Gradio status page mounted onto the FastAPI app, the
+Space card, Linux packages needed by OCR, and `deploy-space.sh`. The script
+assembles only what the runtime needs (`rag_core/`, `backend/` without tests,
+the Python dependencies and packaging files) and uploads it with the `hf` CLI.
+It creates a ZeroGPU Gradio Space because free Hugging Face accounts cannot
+create Docker or CPU Basic Spaces. The backend remains CPU-only; normal API use
+does not consume a visitor's GPU quota.
 
 ```bash
-pip install -U huggingface_hub && hf auth login      # once, with a write token
+curl -LsSf https://hf.co/cli/install.sh | bash       # current standalone CLI
+hf auth login                                        # once, via browser code
 ./hf-space/deploy-space.sh <owner>/campus-guide-api --dry-run   # assemble only
 ./hf-space/deploy-space.sh <owner>/campus-guide-api             # create or update the Space
 ```
 
-Then, on the Space's settings page, add the secret `AGENTROUTER_API_KEY` (and
-`CAMPUS_DATA_DIR=/data` if you enable persistent storage; without it, uploaded
-documents disappear when the Space restarts). The API is at
-`https://<owner>-campus-guide-api.hf.space`; check `/api/health`. Free Spaces
-sleep after inactivity and take about half a minute to wake. The script refuses
-to upload if a secret-looking value is in the staged files.
+Then, on the Space's settings page, add the secret `AGENTROUTER_API_KEY`.
+Uploaded documents use ephemeral storage and disappear when the Space restarts;
+persistent storage is a separate paid option. The API is at
+`https://<owner>-campus-guide-api.hf.space`; check `/api/status`. The script
+refuses to upload if a secret-looking value is in the staged files.
+
+**The Space must be public** for the Vercel frontend to use it. A private
+Space's `hf.space` URL needs a Hugging Face login, and the Next.js rewrite
+cannot attach one, so every request would come back as an error page. Pass
+`--public` to the script or change the visibility in the Space's settings.
+
+On the Space, Gradio owns the homepage and its own `/gradio_api/*` routes, so
+the FastAPI routes are registered under `/campus-api/*` and a middleware maps
+the public `/api/*` paths onto them. The frontend only ever sees `/api/*`, the
+same paths it uses locally.
 
 ### Frontend on Vercel
 
@@ -169,6 +186,36 @@ Root Directory `demos/01-campus-desk`, framework Next.js, Node.js 22, and
 build time). The browser only talks to the Vercel domain; Next.js proxies
 `/api/*` to the Space, so no CORS setup is needed. If you would rather have the
 browser call the Space directly, set `CAMPUS_CORS_ORIGINS` on the Space.
+
+Deploy order when the contract version changes: the backend first, then the
+frontend. Changing `CAMPUS_API_URL` on Vercel needs a redeploy, because the
+rewrite target is read at build time.
+
+### Check a deployment
+
+`check-deploy.sh` runs the same checks the browser makes, against whichever
+origin you give it. Point it at the Vercel domain to test the whole path
+(browser → Vercel → Space), or at the Space URL to test the backend alone:
+
+```bash
+./check-deploy.sh https://your-app.vercel.app          # status, contract header, a workspace route, API docs
+./check-deploy.sh https://your-app.vercel.app --full   # also upload a text file, stream an answer, delete it
+```
+
+It fails with a specific message when the contract header is missing (a proxy
+or host error page: the Space is asleep, private or the rewrite points at the
+wrong URL), when the version differs (the wrong backend is deployed) or when a
+stream ends without its final event. A Space that has been sleeping can take a
+few minutes to answer the first time; run the check again.
+
+What the frontend does when the backend is not there yet: the layout asks the
+backend for its status while rendering, with a three-second limit. If that
+fails, the page still renders with an **Offline** badge and the browser keeps
+checking `/api/status` (3 s, 6 s, 12 s, … up to every 30 s) until a matching
+backend answers, then switches to **Ready** or **Search only** without a
+reload. The same check runs while the embedding model is still loading. A
+reply without the contract header is reported as "isn't reachable", and one
+with a different version as "out of date".
 
 ### Elsewhere
 
@@ -219,6 +266,9 @@ All paths are relative to `demos/01-campus-desk`.
 | `components/library-view.tsx` | Multi-file upload and document breakdown |
 | `components/retrieval-view.tsx`, `augmentation-view.tsx`, `generation-view.tsx` | Layer tabs |
 | `lib/api.ts` | Backend client, workspace ID, NDJSON reader |
+| `lib/contract.ts` | The API contract version and how a reply is classified (matching, unreachable, incompatible) |
+| `check-deploy.sh` | Checks a deployed frontend or backend against this contract |
+| `hf-space/` | Hugging Face Space entrypoint, card, packages and deploy script for the backend |
 
 Shared, in the repository root: `rag_core/core.py` (FTS5 index with optional
 stemming and scored keyword matches) and `rag_core/providers.py`
