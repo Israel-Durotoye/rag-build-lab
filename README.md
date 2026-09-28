@@ -4,24 +4,32 @@ Ten separately runnable demos sharing one inspectable Python retrieval core. Bui
 
 **Working baseline:** all ten apps perform real retrieval on included synthetic data without keys or model downloads. The offline mode returns source excerpts, not an invented AI answer. Enable an installed local Ollama model for generation; optionally add Sentence Transformers for semantic retrieval and reranking.
 
-## Campus Desk website — TypeScript / Next.js
+## Campus Guide website — Python backend + Next.js frontend
 
-The first demo now has a TypeScript website ready to build on Vercel. From the
-repository root, using Node.js 22:
+The first demo, Campus Guide, is a student guide for a school: the owner adds
+the school's documents and students ask questions on a chat page. A welcome
+page with quick actions is written from the documents, answer instructions are
+editable in Settings, and a "How it works" section shows each RAG layer
+(retrieval, augmentation, generation) for any question. Its backend is Python
+(FastAPI): PyMuPDF and RapidOCR extract text from pages and images,
+python-docx reads Word files, FastEmbed and `rag_core`'s stemmed SQLite FTS5
+index power hybrid retrieval, and the `openai` SDK streams DeepSeek answers
+through AgentRouter with retries. Next.js renders the interface and proxies
+`/api/*` to the backend. From the repository root:
 
 ```bash
 cd demos/01-campus-desk
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ../.. -r backend/requirements.txt
 npm ci
-npm run dev
+npm run api    # Python backend on :8000
+npm run dev    # frontend on :3000 (second terminal)
 ```
 
-Open http://localhost:3000. Search, source previews, citation validation and the
-optional model adapters run in TypeScript. Default source search requires no
-keys, database, Python server or model download. See [setup, architecture and
-Vercel deployment instructions](demos/01-campus-desk/WEB_README.md). Vercel's Root
-Directory should be `demos/01-campus-desk` and its framework preset should be Next.js.
-Each demo's frontend, backend, dependencies, and build configuration live inside
-that demo's own folder.
+Without a model key it still retrieves and shows passages. See [setup, architecture and
+deployment instructions](demos/01-campus-desk/WEB_README.md). Each demo's
+frontend, backend, dependencies, and build configuration live inside that
+demo's own folder.
 
 ## Python demos quick start
 
@@ -138,6 +146,7 @@ python scripts/evaluate_all.py
 - `rag_core/pipeline.py`: retrieval, generation validation, follow-ups and policy/identity rules.
 - `rag_core/providers.py`: optional Sentence Transformers and Ollama adapters.
 - `rag_core/workflows.py`: comparisons, graph paths, calculations and bounded searches.
+- `rag_core/study.py`: Study Companion parent-section expansion, one follow-up and verbatim explanations.
 - `rag_core/repository.py`: read-only Git snapshot ingestion.
 - `rag_core/ui.py`: shared UI, with each demo independently configured.
 - `tests/`: core, security-boundary, repository and app smoke tests.

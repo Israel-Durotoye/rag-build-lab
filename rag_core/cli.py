@@ -2,6 +2,7 @@ import argparse
 import json
 from pathlib import Path
 from .pipeline import load_config, from_environment
+from .study import StudyCompanion
 from .workflows import compare, graph_path, calculate_difference, bounded_search
 
 
@@ -12,6 +13,8 @@ def main(argv=None):
     p.add_argument('--db',default=':memory:')
     sub=p.add_subparsers(dest='action',required=True)
     ask=sub.add_parser('ask'); ask.add_argument('question'); ask.add_argument('--device'); ask.add_argument('--as-of'); ask.add_argument('--identity'); ask.add_argument('--previous')
+    ask.add_argument('--chunking',choices=['section','fixed'],default='section',help='Study Companion only')
+    ask.add_argument('--no-expand',action='store_true',help='Study Companion only: keep small matches unexpanded')
     cmp=sub.add_parser('compare'); cmp.add_argument('question'); cmp.add_argument('left'); cmp.add_argument('right')
     graph=sub.add_parser('graph'); graph.add_argument('start'); graph.add_argument('end')
     calc=sub.add_parser('calculate'); calc.add_argument('left'); calc.add_argument('right')
@@ -21,7 +24,11 @@ def main(argv=None):
     config=load_config(args.config)
     pipe=from_environment(config,args.db)
     try:
-        if args.action=='ask':
+        if args.action=='ask' and config['kind']=='study':
+            companion=StudyCompanion(pipe); companion.ingest(args.chunking)
+            conversation={'topic_question':args.previous,'followups_used':0} if args.previous else None
+            result=companion.ask(args.question,conversation,args.mode,expand=not args.no_expand)
+        elif args.action=='ask':
             filters={k:v for k,v in {'device':args.device,'as_of':args.as_of}.items() if v}
             result=pipe.ask(args.question,filters,args.identity,args.mode,args.previous)
         elif args.action=='compare': result=compare(pipe,args.question,args.left,args.right,args.mode)

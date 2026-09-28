@@ -1,16 +1,24 @@
-# Campus Desk
+# Campus Guide (Campus Desk demo)
 
-**Website:** from this directory (`demos/01-campus-desk`), run `npm ci` then
-`npm run dev`. Open http://localhost:3000. The entire TypeScript frontend and
-backend live here. See the [web setup and Vercel guide](WEB_README.md).
+**Website:** a Python (FastAPI) backend plus a Next.js frontend, both in this
+directory. Start the backend with `npm run api` and the frontend with
+`npm run dev`, then open <http://localhost:3000>. See the
+[setup, architecture and deployment guide](WEB_README.md).
 The Python/Streamlit commands below remain available as the original baseline.
 The evaluation questions and answer-support checklist apply to both versions.
 
-Two related apps share this folder. The **website** demonstrates how RAG works
-end to end: the visitor adds their own PDF or Word document in the browser
-(text extraction plus OCR for scanned pages), the server retrieves matching
-passages per request, and a DeepSeek model — when configured — writes answers
-that must cite those passages. The **Python/Streamlit baseline** below searches
+Two related apps share this folder. The **website, Campus Guide,** is a
+student-facing guide for a school: its owner adds the school's documents (one
+or many at once) and students ask questions; the Python backend
+extracts it (PyMuPDF text layer, RapidOCR for scanned pages and text inside
+images, python-docx for Word), retrieves matching passages per question with
+hybrid search (stemmed BM25 via `rag_core`'s SQLite FTS5 index plus FastEmbed
+semantic vectors), and has DeepSeek stream answers that must cite those
+passages. The welcome page (school name, quick actions, topics) is written by
+the model from the documents themselves — nothing is typed in by hand — and the
+owner can edit the answer instructions on a Settings page. A "How it works"
+section shows each layer — retrieval, augmentation, generation — for every
+question. The **Python/Streamlit baseline** below searches
 the official **Students' Handbook 2021–2025 of the Department of Mechatronics
 Engineering, Federal University of Technology, Minna** (57 transcribed sections
 in `corpus.json`, provenance in `manifest.json`) with real SQLite FTS5

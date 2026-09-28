@@ -57,3 +57,39 @@ def test_campus_reindex_clears_followup_and_invalid_input_clears_result(monkeypa
     next(b for b in app.button if b.label=='Search').click().run()
     assert not app.exception
     assert any('ask an initial question first' in m.value for m in app.markdown)
+
+
+def test_study_explanation_followup_reset_and_chunking(monkeypatch):
+    monkeypatch.setenv('RAG_GENERATOR','none')
+    monkeypatch.delenv('RAG_EMBEDDING_MODEL',raising=False)
+    monkeypatch.delenv('RAG_RERANKER_MODEL',raising=False)
+    path=next(p for p in APPS if p.parent.name=='02-study-companion')
+    app=AppTest.from_file(str(path)).run()
+    search=lambda:next(b for b in app.button if b.label=='Search').click().run()
+    app.text_input[0].set_value('What does integral action do?');search()
+    assert not app.exception
+    assert [h.value for h in app.subheader if h.value in {'Explanation','Supporting sections','Original source'}]==['Explanation','Supporting sections','Original source']
+    assert any('Not a generated explanation' in c.value for c in app.caption)
+    assert any('windup' in t.value for t in app.text)
+    assert any('follow-up 0/1 used' in c.value for c in app.caption)
+
+    app.text_input[0].set_value('What about windup?');search()
+    assert any('Follow-up: What about windup?' in c.value for c in app.code)
+    assert any('follow-up 1/1 used' in c.value for c in app.caption)
+    app.text_input[0].set_value('And anti-windup?');search()
+    assert any('one follow-up' in w.value for w in app.warning)
+
+    next(b for b in app.button if b.label=='Reset conversation').click().run()
+    assert not app.warning and not any(h.value=='Explanation' for h in app.subheader)
+    assert not any('used.' in c.value and 'Topic' in c.value for c in app.caption)
+
+    app.sidebar.selectbox[1].select('fixed').run()
+    next(b for b in app.button if b.label=='Apply chunk strategy').click().run()
+    app.text_input[0].set_value('What is negative feedback?');search()
+    assert not app.exception
+    assert any('expanded to full section' in e.label for e in app.expander)
+    assert any('does not guarantee stability' in t.value for t in app.text)
+
+    app.text_input[0].set_value('Explain the Kalman filter');search()
+    assert any('Insufficient evidence' in w.value for w in app.warning)
+    assert not any(h.value=='Supporting sections' for h in app.subheader)

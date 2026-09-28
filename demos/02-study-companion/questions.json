@@ -1,0 +1,10 @@
+[
+  {"id": "q1", "category": "definition", "question": "What is negative feedback?", "expected_sections": ["feedback"], "exception_check": "does not guarantee stability"},
+  {"id": "q2", "category": "definition", "question": "Define steady-state error", "expected_sections": ["steady-state"]},
+  {"id": "q3", "category": "comparison", "question": "Compare open-loop and closed-loop control", "expected_sections": ["open-loop", "closed-loop"]},
+  {"id": "q4", "category": "comparison", "question": "How does proportional control differ from integral action?", "expected_sections": ["gain", "integral"]},
+  {"id": "q5", "category": "explanation", "question": "Why does derivative action make a noisy sensor jitter?", "expected_sections": ["derivative"]},
+  {"id": "q6", "category": "ambiguous follow-up", "previous": "What does integral action do?", "question": "What about windup?", "expected_sections": ["integral"]},
+  {"id": "q7", "category": "ambiguous follow-up", "previous": "What is negative feedback?", "question": "Does it guarantee stability?", "expected_sections": ["feedback"], "exception_check": "does not guarantee stability"},
+  {"id": "q8", "category": "absent topic", "question": "Explain the Kalman filter", "expected_status": "insufficient_evidence"}
+]

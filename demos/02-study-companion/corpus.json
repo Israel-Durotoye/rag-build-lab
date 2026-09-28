@@ -1,33 +1,57 @@
 [
   {
     "id": "controls",
-    "title": "Synthetic control notes",
-    "version": "1",
-    "metadata": {},
+    "title": "Synthetic control systems study notes",
+    "version": "2",
+    "metadata": {"course": "Synthetic Controls 101"},
     "sections": [
       {
         "id": "feedback",
         "title": "Negative feedback",
-        "text": "Negative feedback subtracts the measured output from the reference to form an error signal. Stability still depends on the plant and controller; negative feedback does not guarantee stability.",
-        "location": "feedback"
+        "text": "Definition: negative feedback subtracts the measured output from the reference signal to form an error signal, and the controller acts to shrink that error. Example: a room thermostat measures 19 °C against a 21 °C set point, sees an error of 2 °C and switches the heater on until the error closes. Negative feedback usually reduces sensitivity to disturbances and to changes in the plant. Important exception: negative feedback does not guarantee stability. If the loop gain is too high or the measurement arrives with too much delay, a negative feedback loop can overshoot, oscillate or diverge. Always check stability separately.",
+        "location": "Notes §1 Negative feedback"
+      },
+      {
+        "id": "stability",
+        "title": "Stability",
+        "text": "Definition: a system is stable when every bounded input produces a bounded output, so the response settles instead of growing without limit. Example: after a step change in set point, a stable cruise control settles near the new speed, while an unstable one keeps swinging faster and slower with growing amplitude. Stability is a property of the whole loop: plant, controller, sensor and any delay together. Adding gain or delay can move a stable loop towards instability.",
+        "location": "Notes §2 Stability"
+      },
+      {
+        "id": "open-loop",
+        "title": "Open-loop control",
+        "text": "Definition: an open-loop controller sends a command without measuring the result. Example: a toaster heats for a fixed time whether the bread is pale or burnt. Open-loop control is simple and cheap and cannot become unstable through feedback, but it cannot correct for disturbances or model errors that it never measures.",
+        "location": "Notes §3 Open-loop control"
+      },
+      {
+        "id": "closed-loop",
+        "title": "Closed-loop control",
+        "text": "Definition: a closed-loop controller measures the output and uses the error between reference and measurement to adjust its command. Example: cruise control measures road speed and opens the throttle more when a hill slows the car. Compared with open-loop control, closed-loop control rejects disturbances and tolerates model errors, at the cost of a sensor and the need to check stability.",
+        "location": "Notes §4 Closed-loop control"
       },
       {
         "id": "gain",
-        "title": "Proportional gain",
-        "text": "A proportional controller multiplies error by gain Kp. Increasing gain can reduce steady-state error but may increase overshoot.",
-        "location": "gain"
+        "title": "Proportional control",
+        "text": "Definition: a proportional controller multiplies the current error by a gain Kp. Example: with Kp = 2, an error of 3 units produces a command of 6 units. Increasing Kp makes the response faster and usually reduces steady-state error, but it can increase overshoot. Proportional control alone generally leaves some steady-state error when the plant needs a constant non-zero command.",
+        "location": "Notes §5 Proportional control"
       },
       {
         "id": "integral",
-        "title": "Integral control",
-        "text": "Integral action accumulates error over time. Actuator saturation can cause windup unless anti-windup is used.",
-        "location": "integral"
+        "title": "Integral action",
+        "text": "Definition: integral action adds up the error over time and keeps changing the command until the accumulated error stops growing. Example: a level controller keeps opening the valve slowly while the tank stays below target. Integral action can remove steady-state error for constant set points and disturbances. When the actuator saturates, the integral keeps growing, which is called windup; anti-windup logic stops or limits the integrator while the actuator is at its limit.",
+        "location": "Notes §6 Integral action"
       },
       {
         "id": "derivative",
         "title": "Derivative action",
-        "text": "Derivative action responds to the rate of error change. It is sensitive to measurement noise.",
-        "location": "derivative"
+        "text": "Definition: derivative action responds to how fast the error is changing, which adds damping and can reduce overshoot. Example: as a robot arm approaches its target quickly, the derivative term eases the command before the arm arrives. Derivative action amplifies high-frequency measurement noise, so a noisy sensor can make the command jitter.",
+        "location": "Notes §7 Derivative action"
+      },
+      {
+        "id": "steady-state",
+        "title": "Steady-state error",
+        "text": "Definition: steady-state error is the difference between the reference and the output after the transient response has died away. Example: a heater under proportional control settles at 20.5 °C when the set point is 21 °C, leaving a steady-state error of 0.5 °C. Integral action or a higher proportional gain can reduce it.",
+        "location": "Notes §8 Steady-state error"
       }
     ]
   }

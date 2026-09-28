@@ -1,0 +1,284 @@
+{
+  "chunk_mode": "section",
+  "expansion_enabled": false,
+  "retrieval_mode": "keyword",
+  "chunk_words": null,
+  "k": 4,
+  "context_budget_words": 250,
+  "expand_below_words": 60,
+  "corpus_version": "b0a966beda701c88957e31cce42ec4e62206513d2177ea038aef20acec0cb49c",
+  "run_at": "2026-09-28T17:20:23.294553+00:00",
+  "python": "3.13.5",
+  "sqlite": "3.50.2",
+  "scope": "Eight authored questions over one synthetic notes file. Not a benchmark; no winner is declared.",
+  "questions": [
+    {
+      "id": "q1",
+      "category": "definition",
+      "question": "What is negative feedback?",
+      "retrieval_query": "What is negative feedback?",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:feedback:0",
+        "controls:open-loop:0"
+      ],
+      "retrieved_sections": [
+        "feedback",
+        "open-loop"
+      ],
+      "context_ids": [
+        "controls:feedback:0",
+        "controls:open-loop:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 152,
+      "budget_skips": [],
+      "expected_sections": [
+        "feedback"
+      ],
+      "expected_sections_in_context": [
+        "feedback"
+      ],
+      "exception_phrase": "does not guarantee stability",
+      "exception_in_retrieved_chunks": true,
+      "exception_in_context": true,
+      "exception_in_extractive_explanation": true
+    },
+    {
+      "id": "q2",
+      "category": "definition",
+      "question": "Define steady-state error",
+      "retrieval_query": "Define steady-state error",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:steady-state:0",
+        "controls:gain:0",
+        "controls:integral:0",
+        "controls:feedback:0"
+      ],
+      "retrieved_sections": [
+        "steady-state",
+        "gain",
+        "integral",
+        "feedback"
+      ],
+      "context_ids": [
+        "controls:steady-state:0",
+        "controls:gain:0",
+        "controls:integral:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 186,
+      "budget_skips": [
+        {
+          "chunk_id": "controls:feedback:0",
+          "reason": "chunk would exceed the context budget"
+        }
+      ],
+      "expected_sections": [
+        "steady-state"
+      ],
+      "expected_sections_in_context": [
+        "steady-state"
+      ]
+    },
+    {
+      "id": "q3",
+      "category": "comparison",
+      "question": "Compare open-loop and closed-loop control",
+      "retrieval_query": "Compare open-loop and closed-loop control",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:closed-loop:0",
+        "controls:open-loop:0",
+        "controls:stability:0",
+        "controls:gain:0"
+      ],
+      "retrieved_sections": [
+        "closed-loop",
+        "open-loop",
+        "stability",
+        "gain"
+      ],
+      "context_ids": [
+        "controls:closed-loop:0",
+        "controls:open-loop:0",
+        "controls:stability:0",
+        "controls:gain:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 248,
+      "budget_skips": [],
+      "expected_sections": [
+        "open-loop",
+        "closed-loop"
+      ],
+      "expected_sections_in_context": [
+        "open-loop",
+        "closed-loop"
+      ]
+    },
+    {
+      "id": "q4",
+      "category": "comparison",
+      "question": "How does proportional control differ from integral action?",
+      "retrieval_query": "How does proportional control differ from integral action?",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:steady-state:0",
+        "controls:integral:0",
+        "controls:gain:0",
+        "controls:feedback:0"
+      ],
+      "retrieved_sections": [
+        "steady-state",
+        "integral",
+        "gain",
+        "feedback"
+      ],
+      "context_ids": [
+        "controls:steady-state:0",
+        "controls:integral:0",
+        "controls:gain:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 186,
+      "budget_skips": [
+        {
+          "chunk_id": "controls:feedback:0",
+          "reason": "chunk would exceed the context budget"
+        }
+      ],
+      "expected_sections": [
+        "gain",
+        "integral"
+      ],
+      "expected_sections_in_context": [
+        "gain",
+        "integral"
+      ]
+    },
+    {
+      "id": "q5",
+      "category": "explanation",
+      "question": "Why does derivative action make a noisy sensor jitter?",
+      "retrieval_query": "Why does derivative action make a noisy sensor jitter?",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:derivative:0",
+        "controls:integral:0",
+        "controls:steady-state:0",
+        "controls:closed-loop:0"
+      ],
+      "retrieved_sections": [
+        "derivative",
+        "integral",
+        "steady-state",
+        "closed-loop"
+      ],
+      "context_ids": [
+        "controls:derivative:0",
+        "controls:integral:0",
+        "controls:steady-state:0",
+        "controls:closed-loop:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 238,
+      "budget_skips": [],
+      "expected_sections": [
+        "derivative"
+      ],
+      "expected_sections_in_context": [
+        "derivative"
+      ]
+    },
+    {
+      "id": "q6",
+      "category": "ambiguous follow-up",
+      "question": "What about windup?",
+      "retrieval_query": "What does integral action do?\nFollow-up: What about windup?",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:integral:0",
+        "controls:steady-state:0",
+        "controls:derivative:0"
+      ],
+      "retrieved_sections": [
+        "integral",
+        "steady-state",
+        "derivative"
+      ],
+      "context_ids": [
+        "controls:integral:0",
+        "controls:steady-state:0",
+        "controls:derivative:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 178,
+      "budget_skips": [],
+      "expected_sections": [
+        "integral"
+      ],
+      "expected_sections_in_context": [
+        "integral"
+      ]
+    },
+    {
+      "id": "q7",
+      "category": "ambiguous follow-up",
+      "question": "Does it guarantee stability?",
+      "retrieval_query": "What is negative feedback?\nFollow-up: Does it guarantee stability?",
+      "status": "sources_found",
+      "retrieved_chunk_ids": [
+        "controls:feedback:0",
+        "controls:integral:0",
+        "controls:open-loop:0",
+        "controls:stability:0"
+      ],
+      "retrieved_sections": [
+        "feedback",
+        "integral",
+        "open-loop",
+        "stability"
+      ],
+      "context_ids": [
+        "controls:feedback:0",
+        "controls:integral:0",
+        "controls:open-loop:0"
+      ],
+      "expanded_ids": [],
+      "context_words": 225,
+      "budget_skips": [
+        {
+          "chunk_id": "controls:stability:0",
+          "reason": "chunk would exceed the context budget"
+        }
+      ],
+      "expected_sections": [
+        "feedback"
+      ],
+      "expected_sections_in_context": [
+        "feedback"
+      ],
+      "exception_phrase": "does not guarantee stability",
+      "exception_in_retrieved_chunks": true,
+      "exception_in_context": true,
+      "exception_in_extractive_explanation": true
+    },
+    {
+      "id": "q8",
+      "category": "absent topic",
+      "question": "Explain the Kalman filter",
+      "retrieval_query": "Explain the Kalman filter",
+      "status": "insufficient_evidence",
+      "retrieved_chunk_ids": [],
+      "retrieved_sections": [],
+      "context_ids": [],
+      "expanded_ids": [],
+      "context_words": 0,
+      "budget_skips": [],
+      "expected_status": "insufficient_evidence",
+      "status_matches": true
+    }
+  ]
+}

@@ -4,6 +4,10 @@ Campus Desk's TypeScript migration was verified from `demos/01-campus-desk`:
 24 web tests, 7/7 web evaluation questions, type checking, linting and the production
 build passed. See [web run results](../demos/01-campus-desk/WEB_RUN_RESULTS.md).
 
+Study Companion was extended and checked locally on 28 September 2026: 84 tests passed
+and 30/30 retrieval cases passed across all demos. No live model was run. See
+[the Study Companion record](../demos/02-study-companion/RUN_RESULTS.md).
+
 Campus Desk was extended and checked locally on 27 September 2026: 61 tests and
 27/27 retrieval cases passed, with real-browser verification and a SQLite
 cross-thread rerun fix. See [the detailed local record](../demos/01-campus-desk/RUN_RESULTS.md).

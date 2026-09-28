@@ -47,10 +47,6 @@ def run(config_path):
         st.session_state['identity:'+key]=identity
     if kind=='manual': filters['device']=st.selectbox('Device',['','M1','M2','M3'])
     if kind=='policy': filters['as_of']=st.date_input('Effective date').isoformat()
-    if kind=='study':
-        chunk_mode=st.sidebar.selectbox('Chunk strategy',['section','fixed'])
-        if st.sidebar.button('Apply chunk strategy'):
-            pipe.ingest(chunk_mode); st.session_state.pop('result:'+key,None)
     if kind=='spec':
         st.caption('Text retrieval over manually transcribed synthetic pages. No OCR or visual embeddings are claimed.')
         a,b=st.columns(2)

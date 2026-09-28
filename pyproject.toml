@@ -10,6 +10,7 @@ dependencies = []
 [project.optional-dependencies]
 ui = ["streamlit>=1.40,<2"]
 semantic = ["sentence-transformers>=3,<6"]
+openai = ["openai>=1.40,<4"]
 test = ["pytest>=8,<10"]
 [project.scripts]
 rag-lab = "rag_core.cli:main"

@@ -59,8 +59,11 @@ def synchronized(method):
 
 
 class Index:
-    """One collection per SQLite database; replace is atomic and removes old chunks."""
-    def __init__(self, path: str | Path = ':memory:'):
+    """One collection per SQLite database; replace is atomic and removes old chunks.
+
+    With ``stemming=True`` the full-text index uses FTS5's Porter stemmer, so
+    "fail" also matches "failed" and "exam" matches "exams"."""
+    def __init__(self, path: str | Path = ':memory:', stemming: bool = False):
         if str(path) != ':memory:':
             Path(path).parent.mkdir(parents=True, exist_ok=True)
         # Streamlit reruns a session on new script threads. Keep its connection
@@ -68,9 +71,10 @@ class Index:
         self._lock = RLock()
         self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.row_factory = sqlite3.Row
-        self.db.executescript('''
+        tokenizer = ", tokenize='porter unicode61'" if stemming else ''
+        self.db.executescript(f'''
           CREATE TABLE IF NOT EXISTS chunks(id TEXT PRIMARY KEY, doc_id TEXT, title TEXT, text TEXT, location TEXT, metadata TEXT);
-          CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(id UNINDEXED, title, text);
+          CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(id UNINDEXED, title, text{tokenizer});
           CREATE TABLE IF NOT EXISTS state(key TEXT PRIMARY KEY, value TEXT);
         ''')
 
@@ -138,6 +142,28 @@ class Index:
         r = self.db.execute('SELECT * FROM chunks WHERE id=?', (source_id,)).fetchone()
         if r and self.allowed(c := self.unpack(r), filters or {}, tenants): return c
         return None
+
+    @synchronized
+    def keyword_matches(self, question, limit=20, filters=None, tenants=None):
+        """BM25-ranked keyword matches with their scores (higher is better) and
+        the query terms each chunk matched, for explaining retrieval."""
+        allowed = {c.id: c for c in self.chunks(filters, tenants)}
+        terms = list(dict.fromkeys(tokens(question)))[:64]
+        if not terms or not allowed:
+            return []
+        quoted = ['"'+t.replace('"','""')+'"' for t in terms]
+        rows = self.db.execute('SELECT id, bm25(search) FROM search WHERE search MATCH ? ORDER BY bm25(search), id',
+                               (' OR '.join(quoted),)).fetchall()
+        hits = [(r[0], -r[1]) for r in rows if r[0] in allowed][:limit]
+        if not hits:
+            return []
+        ids = [i for i, _ in hits]
+        matched = {i: [] for i in ids}
+        marks = ','.join('?' * len(ids))
+        for term, q in zip(terms, quoted):
+            for (i,) in self.db.execute(f'SELECT id FROM search WHERE search MATCH ? AND id IN ({marks})', (q, *ids)):
+                matched[i].append(term)
+        return [{'chunk': allowed[i], 'score': score, 'terms': matched[i]} for i, score in hits]
 
     @synchronized
     def search(self, question, k=4, mode='keyword', embedder=None, filters=None, tenants=None, reranker=None):

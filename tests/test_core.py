@@ -38,7 +38,7 @@ def test_chunking_preserves_exception_and_locations():
     p=make(2);d=p.documents[0]
     section=chunk_document(d)[0];assert 'does not guarantee' in section.text
     fixed=chunk_document(d,mode='fixed',size=8)
-    assert len(fixed)>len(chunk_document(d));assert fixed[0].location=='feedback'
+    assert len(fixed)>len(chunk_document(d));assert fixed[0].location==d['sections'][0]['location']
     assert len({c.id for c in fixed})==len(fixed)
 
 

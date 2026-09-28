@@ -1,5 +1,5 @@
 {
-  "name": "campus-desk",
+  "name": "campus-guide",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -12,17 +12,15 @@
     "lint": "eslint app components lib web-tests next.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test web-tests/*.test.ts",
-    "evaluate": "node --import tsx scripts/evaluate-campus.ts",
-    "format": "prettier --write app components lib web-tests scripts/evaluate-campus.ts next.config.ts"
+    "format": "prettier --write app components lib web-tests next.config.ts",
+    "api": ".venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000 --reload",
+    "test:api": ".venv/bin/python -m pytest backend/tests -q"
   },
   "dependencies": {
     "lucide-react": "1.48.0",
-    "mammoth": "^1.13.0",
     "next": "16.3.6",
-    "pdfjs-dist": "6.2.108",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "tesseract.js": "^6.0.1"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@types/node": "26.6.3",

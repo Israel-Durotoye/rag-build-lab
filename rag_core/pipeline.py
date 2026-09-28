@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from time import perf_counter
 from .core import Index
-from .providers import Ollama, SentenceEmbeddings, CrossEncoderReranker
+from .providers import Ollama, OpenAICompatible, SentenceEmbeddings, CrossEncoderReranker
 
 
 def citation_label(chunk):
@@ -20,18 +20,24 @@ def load_config(path):
 
 
 class Pipeline:
-    def __init__(self, config, db=':memory:', embedder=None, generator=None, reranker=None):
+    def __init__(self, config, db=':memory:', embedder=None, generator=None, reranker=None, documents=None):
         self.config = config
-        self.index = Index(db)
+        self.index = Index(db, stemming=config.get('stemming', False))
         self.embedder = embedder
         self.generator = generator
         self.reranker = reranker
         self.grants = {u:set(t) for u,t in config.get('identities',{}).items()}
+        # Supplied documents (e.g. an uploaded file) replace the demo's corpus.json.
+        self._supplied = documents
         self.ingest()
 
     def ingest(self, mode='section'):
-        self.documents = json.loads((Path(self.config['_dir'])/'corpus.json').read_text())
+        if self._supplied is not None:
+            self.documents = self._supplied
+        else:
+            self.documents = json.loads((Path(self.config['_dir'])/'corpus.json').read_text())
         self.index.replace(self.documents, mode=mode, size=self.config.get('chunk_words',120))
+        self.chunk_mode = mode
 
     def scope(self, identity=None):
         if self.config.get('kind') == 'support':
@@ -111,7 +117,14 @@ def from_environment(config, db=':memory:'):
     embedding_name = os.getenv('RAG_EMBEDDING_MODEL','')
     reranker_name = os.getenv('RAG_RERANKER_MODEL','')
     generation = os.getenv('RAG_GENERATOR','none')
-    if generation not in {'none','ollama'}: raise ValueError('RAG_GENERATOR must be none or ollama')
-    return Pipeline(config, db, SentenceEmbeddings(embedding_name) if embedding_name else None,
-                    Ollama(os.getenv('OLLAMA_MODEL','')) if generation=='ollama' else None,
+    if generation not in {'none','ollama','openai'}: raise ValueError('RAG_GENERATOR must be none, ollama or openai')
+    generator = None
+    if generation == 'ollama':
+        generator = Ollama(os.getenv('OLLAMA_MODEL',''))
+    elif generation == 'openai':
+        agent = os.getenv('RAG_OPENAI_USER_AGENT','')
+        generator = OpenAICompatible(os.getenv('RAG_OPENAI_MODEL',''), os.getenv('RAG_OPENAI_API_KEY',''),
+                                     os.getenv('RAG_OPENAI_BASE_URL') or None, float(os.getenv('RAG_TIMEOUT','60')),
+                                     {'User-Agent': agent} if agent else None)
+    return Pipeline(config, db, SentenceEmbeddings(embedding_name) if embedding_name else None, generator,
                     CrossEncoderReranker(reranker_name) if reranker_name else None)

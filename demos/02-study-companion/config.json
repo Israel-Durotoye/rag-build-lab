@@ -4,5 +4,11 @@
   "session": 6,
   "sample_question": "Does negative feedback guarantee stability?",
   "default_options": {},
-  "description": "Section-aware retrieval, source expansion, a short explanation and one contextual follow-up. Keep the original notes available. Quiz mode is optional."
+  "chunk_words": 40,
+  "study": {
+    "k": 4,
+    "context_budget_words": 250,
+    "expand_below_words": 60
+  },
+  "description": "Ask about a set of study notes. See an explanation, the exact supporting sections and the original notes, then ask one follow-up. Compare section-aware and fixed-length chunking on the same questions."
 }

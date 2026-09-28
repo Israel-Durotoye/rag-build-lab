@@ -4,7 +4,19 @@
     "expected_source": "controls:feedback:0"
   },
   {
+    "question": "Compare open-loop and closed-loop control",
+    "expected_source": "controls:closed-loop:0"
+  },
+  {
+    "question": "What causes integrator windup?",
+    "expected_source": "controls:integral:0"
+  },
+  {
     "question": "xylophonemeteoritezz",
+    "expected_status": "insufficient_evidence"
+  },
+  {
+    "question": "Explain the Kalman filter",
     "expected_status": "insufficient_evidence"
   }
 ]

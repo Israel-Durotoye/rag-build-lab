@@ -1,30 +1,73 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
+import { RagProvider } from "@/components/rag-provider";
+import type { Health } from "@/lib/types";
 import "./globals.css";
 
 // Self-hosted at build time by next/font: no runtime requests, no layout shift.
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  axes: ["opsz", "wdth"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+// Capabilities come from the Python backend on each request; its model key
+// never reaches the browser.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "Campus Desk — Ask your document",
+  title: "Campus Guide",
   description:
-    "Add a PDF or Word document and ask it questions. Answers come only from the file itself, with the exact passages cited.",
+    "Your school's documents, answered. Ask questions and get short, cited answers from the handbooks and guides your school provides.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#101314",
+  themeColor: "#f6f5ee",
 };
 
-export default function RootLayout({
+async function backendHealth(): Promise<Health | null> {
+  const apiUrl = (
+    process.env.CAMPUS_API_URL || "http://127.0.0.1:8000"
+  ).replace(/\/$/, "");
+  try {
+    const response = await fetch(`${apiUrl}/api/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(3000),
+    });
+    return response.ok ? ((await response.json()) as Health) : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const health = await backendHealth();
   return (
-    <html lang="en" className={inter.variable}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${geist.variable} ${geistMono.variable} ${bricolage.variable}`}
+    >
+      <body>
+        <RagProvider initialHealth={health}>
+          <AppShell>{children}</AppShell>
+        </RagProvider>
+      </body>
     </html>
   );
 }
