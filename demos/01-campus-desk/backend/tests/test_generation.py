@@ -118,3 +118,15 @@ def test_profile_retries_with_a_smaller_sample_when_the_model_fails():
     assert profile['institution'] == 'Test School'
     first, last = calls.calls[0]['messages'][1]['content'], calls.calls[-1]['messages'][1]['content']
     assert len(last) < len(first) and calls.calls[-1]['max_tokens'] > calls.calls[0]['max_tokens']
+
+
+def test_settings_read_the_environment(monkeypatch, tmp_path):
+    from backend.settings import Settings
+    env = {'AGENTROUTER_API_KEY': 'k', 'CAMPUS_DATA_DIR': str(tmp_path / 'data'), 'AGENTROUTER_TIMEOUT_MS': '30000',
+           'AGENTROUTER_FALLBACK_MODELS': 'a, b', 'CAMPUS_OCR': 'off'}
+    s = Settings.from_env(env)
+    assert s.generation and s.timeout == 30 and s.fallback_models == ('a', 'b') and not s.ocr_enabled
+    assert s.model_dir == tmp_path / 'data' / 'models'
+    assert Settings.from_env({**env, 'CAMPUS_MODEL_DIR': '/opt/models'}).model_dir.as_posix() == '/opt/models'
+    with pytest.raises(ValueError):
+        Settings.from_env({**env, 'AGENTROUTER_RETRIES': '9'})

@@ -141,16 +141,41 @@ optionally `RAG_OPENAI_USER_AGENT` (`pip install -e '.[openai]'`).
 
 Nothing here deploys anything; publishing is a separate, deliberate step.
 
-- **Backend:** a host that runs a long-lived Python process with a writable
-  disk (Render, Railway, Fly.io, a VPS or a container with a volume for
-  `CAMPUS_DATA_DIR`). Install as above and run
-  `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`. On Debian/Ubuntu,
-  install `libgl1` for OpenCV. Set the `AGENTROUTER_*` variables there. The
-  OCR and embedding stack is too large for Vercel's Python functions, and
-  serverless instances would lose uploaded documents.
-- **Frontend:** Vercel with Root Directory `demos/01-campus-desk`, framework
-  Next.js, Node.js 22, and `CAMPUS_API_URL` set to the backend's public URL
-  **before building**.
+### Backend on a Hugging Face Space (Docker)
+
+`hf-space/` holds the packaging: a `Dockerfile` (Python 3.11, `libgl1` for
+OpenCV, the embedding model baked into the image, port 7860), the Space card
+(`README.md` with the `sdk: docker` metadata) and `deploy-space.sh`, which
+assembles only what the image needs (`rag_core/`, `backend/` without tests,
+`pyproject.toml`) into a temporary folder and uploads it with the `hf` CLI.
+
+```bash
+pip install -U huggingface_hub && hf auth login      # once, with a write token
+./hf-space/deploy-space.sh <owner>/campus-guide-api --dry-run   # assemble only
+./hf-space/deploy-space.sh <owner>/campus-guide-api             # create or update the Space
+```
+
+Then, on the Space's settings page, add the secret `AGENTROUTER_API_KEY` (and
+`CAMPUS_DATA_DIR=/data` if you enable persistent storage; without it, uploaded
+documents disappear when the Space restarts). The API is at
+`https://<owner>-campus-guide-api.hf.space`; check `/api/health`. Free Spaces
+sleep after inactivity and take about half a minute to wake. The script refuses
+to upload if a secret-looking value is in the staged files.
+
+### Frontend on Vercel
+
+Root Directory `demos/01-campus-desk`, framework Next.js, Node.js 22, and
+`CAMPUS_API_URL` set to the Space URL **before building** (rewrites are fixed at
+build time). The browser only talks to the Vercel domain; Next.js proxies
+`/api/*` to the Space, so no CORS setup is needed. If you would rather have the
+browser call the Space directly, set `CAMPUS_CORS_ORIGINS` on the Space.
+
+### Elsewhere
+
+Any host that runs a long-lived Python process works the same way: install with
+`pip install -e ../.. -r backend/requirements.txt` from this folder and run
+`uvicorn backend.app:app --host 0.0.0.0 --port $PORT`, with `libgl1` installed
+on Debian/Ubuntu images.
 
 ## Check the implementation
 

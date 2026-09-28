@@ -323,3 +323,13 @@ and confirmed by a computed-style check. Lint, TypeScript, 8 web tests and the
 production build pass; the browser pass at 1,680 px (two-file upload, welcome
 page, quick action answer, not-found reply, settings) and the four mobile pages
 at 0 px overflow passed with no console errors.
+
+### Hugging Face Space packaging — September 28, 2026
+
+Added `hf-space/` (Dockerfile, Space card, `.dockerignore`, `deploy-space.sh`)
+and a `CAMPUS_MODEL_DIR` setting so the embedding model can be baked into the
+image. Docker is not installed on this Mac, so the image was not built here;
+instead the assembled Space folder (29 files) was installed into a fresh Python
+3.11 environment, the model-bake step ran (384 dimensions) and the API started
+from that tree with the baked model, reporting `embeddings: ready`. Backend
+tests: 100 passed. No Space was created; deployment is the owner's step.

@@ -99,7 +99,7 @@ def model_with(*script, **kwargs):
 def settings(tmp_path, **overrides):
     base = dict(api_key='test-key', model='deepseek-v4-flash', fallback_models=(), base_url='https://agentrouter.org/v1',
                 timeout=60.0, retries=2, user_agent='test', ocr_enabled=True, embeddings_enabled=True,
-                embedding_model='fake-embedder', data_dir=tmp_path, top_k=4, max_documents=3, workspace_ttl_days=7)
+                embedding_model='fake-embedder', data_dir=tmp_path, model_dir=tmp_path / 'models', top_k=4, max_documents=3, workspace_ttl_days=7)
     return Settings(**{**base, **overrides})
 
 

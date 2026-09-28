@@ -134,7 +134,7 @@ def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET,
         store=store,
         model=settings.model_client() if model is UNSET else model,
         embedder=(lambda: get_embedder(settings.embeddings_enabled, settings.embedding_model,
-                                       settings.data_dir / 'models')) if embedder is UNSET else (lambda: embedder),
+                                       settings.model_dir)) if embedder is UNSET else (lambda: embedder),
         ocr=(lambda: get_engine(settings.ocr_enabled)) if ocr is UNSET else (lambda: ocr),
     )
     model_info = {'model': settings.model, 'provider': 'AgentRouter',

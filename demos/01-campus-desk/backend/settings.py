@@ -52,12 +52,14 @@ class Settings:
     embeddings_enabled: bool
     embedding_model: str
     data_dir: Path
+    model_dir: Path
     top_k: int
     max_documents: int
     workspace_ttl_days: float
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] = os.environ) -> 'Settings':
+        data_dir = Path(env.get('CAMPUS_DATA_DIR', '').strip() or DEMO_DIR / '.state')
         return cls(
             api_key=env.get('AGENTROUTER_API_KEY', '').strip(),
             model=env.get('AGENTROUTER_MODEL', '').strip() or DEFAULT_MODEL,
@@ -69,7 +71,9 @@ class Settings:
             ocr_enabled=_flag(env.get('CAMPUS_OCR'), True),
             embeddings_enabled=_flag(env.get('CAMPUS_EMBEDDINGS'), True),
             embedding_model=env.get('CAMPUS_EMBEDDING_MODEL', '').strip() or DEFAULT_EMBEDDING_MODEL,
-            data_dir=Path(env.get('CAMPUS_DATA_DIR', '').strip() or DEMO_DIR / '.state'),
+            data_dir=data_dir,
+            # Embedding weights can live apart from the data (e.g. baked into a container image).
+            model_dir=Path(env.get('CAMPUS_MODEL_DIR', '').strip() or data_dir / 'models'),
             top_k=int(_number(env, 'CAMPUS_TOP_K', 6, 1, 12)),
             max_documents=int(_number(env, 'CAMPUS_MAX_DOCUMENTS', 12, 1, 40)),
             workspace_ttl_days=_number(env, 'CAMPUS_WORKSPACE_TTL_DAYS', 7, 0.01, 365),
