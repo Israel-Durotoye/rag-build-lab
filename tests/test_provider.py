@@ -37,6 +37,11 @@ class _HTTPError(Exception):
         self.status_code = status_code
 
 
+class _RawPage(str):
+    """What the openai SDK hands back when the endpoint answers with a non-JSON
+    body (a firewall challenge page): the text itself, not a completion."""
+
+
 class _FakeCompletions:
     """Scripted replies: each item is content (str), an exception, or a list of stream deltas."""
     def __init__(self, *script):
@@ -45,6 +50,7 @@ class _FakeCompletions:
         self.calls.append(kwargs)
         item = self.script.pop(0) if len(self.script) > 1 else self.script[0]
         if isinstance(item, Exception): raise item
+        if isinstance(item, _RawPage): return str(item)
         if kwargs.get('stream'):
             return self._stream(item)
         usage = NS(prompt_tokens=40, completion_tokens=9, total_tokens=49, completion_tokens_details=NS(reasoning_tokens=5))
@@ -184,3 +190,21 @@ def _length_stream(parts):
         delta = NS(content=None, reasoning_content=text)
         yield NS(choices=[NS(delta=delta, finish_reason=None)], usage=None)
     yield NS(choices=[NS(delta=NS(content=None, reasoning_content=None), finish_reason='length')], usage=None)
+
+
+def test_a_firewall_page_instead_of_a_completion_is_named_logged_and_retried(caplog):
+    import logging
+    import pytest
+    from rag_core.providers import ProviderError
+    page = _RawPage('<!doctype html> <meta name="aliyun_waf_aa" content="x"> <script>challenge()</script>')
+    with caplog.at_level(logging.WARNING, logger='rag_core.providers'):
+        reply = _adapter(_FakeCompletions(page, 'Recovered')).complete([{'role': 'user', 'content': 'hi'}])
+    assert reply['content'] == 'Recovered'
+    assert reply['attempts'][0]['reason'] == 'the provider answered with a web page, not a reply (a firewall or block page)'
+    # The page itself goes to the server log only.
+    assert 'aliyun_waf_aa' in caplog.text and 'RelayResponse' in caplog.text
+    kinds = [e['type'] for e in _adapter(_FakeCompletions(page, [('token', 'Answer')])).stream([{'role': 'user', 'content': 'q'}])]
+    assert kinds == ['attempt', 'retry', 'attempt', 'token', 'end']
+    with pytest.raises(ProviderError, match='web page') as info:
+        _adapter(_FakeCompletions(page), retries=0).complete([{'role': 'user', 'content': 'hi'}])
+    assert 'aliyun' not in str(info.value)

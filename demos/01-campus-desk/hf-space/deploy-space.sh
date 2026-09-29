@@ -58,9 +58,11 @@ VISIBILITY="--private"; $PUBLIC && VISIBILITY="--public"
 "$HF_BIN" repos create "$SPACE" --type space --sdk gradio --flavor zero-a10g $VISIBILITY --exist-ok >/dev/null
 "$HF_BIN" upload "$SPACE" "$STAGE" . --repo-type space --commit-message "Deploy backend @ $GIT_SHA" --delete '*'
 echo "pushed. Build logs: https://huggingface.co/spaces/$SPACE?logs=build"
-echo "then set AGENTROUTER_API_KEY under the Space's settings, and point the frontend's CAMPUS_API_URL at https://${SPACE%%/*}-${SPACE##*/}.hf.space"
+# Space hostnames are lower-case; the capitalised form answers with a 502.
+HOST="$(printf '%s-%s.hf.space' "${SPACE%%/*}" "${SPACE##*/}" | tr '[:upper:]' '[:lower:]')"
+echo "then set the secret (hf spaces secrets add $SPACE -s AGENTROUTER_API_KEY) and point the frontend's CAMPUS_API_URL at https://$HOST"
 if ! $PUBLIC; then
   echo "note: the Space is private. Its hf.space URL then needs a Hugging Face login, which the Vercel" >&2
   echo "      frontend's proxy cannot supply. Make it public (--public, or the Space's settings) before" >&2
-  echo "      pointing CAMPUS_API_URL at it; check with ./check-deploy.sh <space-url>." >&2
+  echo "      pointing CAMPUS_API_URL at it; check with ./check-deploy.sh https://$HOST" >&2
 fi

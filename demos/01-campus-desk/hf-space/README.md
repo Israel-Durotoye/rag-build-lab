@@ -27,8 +27,16 @@ backend rather than silently using an incompatible contract.
 
 Set `AGENTROUTER_API_KEY` as a Space secret. Without it, document extraction
 and retrieval still work, but generated answers, profiles and overviews are
-disabled. Optional variables:
+disabled.
 
+AgentRouter itself is behind a web application firewall that challenges
+requests from Hugging Face's datacenter addresses, so from a Space the key must
+belong to a provider that serves servers, for example Hugging Face Inference
+Providers: `AGENTROUTER_BASE_URL=https://router.huggingface.co/v1`,
+`AGENTROUTER_MODEL=deepseek-ai/DeepSeek-V4-Flash` and a Hugging Face token
+with the inference permission as `AGENTROUTER_API_KEY`. Optional variables:
+
+- `AGENTROUTER_BASE_URL` — any OpenAI-compatible endpoint; defaults to AgentRouter.
 - `AGENTROUTER_MODEL` — defaults to `deepseek-v4-flash`.
 - `CAMPUS_CORS_ORIGINS` — needed only for direct cross-origin browser calls;
   the recommended Next.js proxy needs no CORS setting.

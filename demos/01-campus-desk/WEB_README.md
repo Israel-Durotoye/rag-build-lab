@@ -169,6 +169,10 @@ persistent storage is a separate paid option. The API is at
 `https://<owner>-campus-guide-api.hf.space`; check `/api/status`. The script
 refuses to upload if a secret-looking value is in the staged files.
 
+The entrypoint preloads the embedding and OCR models in a background thread
+at startup (about four minutes on ZeroGPU's shared CPU); `/api/status` reports
+`embeddings: loading` until then and the frontend keeps checking.
+
 **The Space must be public** for the Vercel frontend to use it. A private
 Space's `hf.space` URL needs a Hugging Face login, and the Next.js rewrite
 cannot attach one, so every request would come back as an error page. Pass
@@ -207,6 +211,34 @@ or host error page: the Space is asleep, private or the rewrite points at the
 wrong URL), when the version differs (the wrong backend is deployed) or when a
 stream ends without its final event. A Space that has been sleeping can take a
 few minutes to answer the first time; run the check again.
+
+**Edge errors.** Hugging Face's edge answers a share of requests to any
+Space with a 502 page before they reach the container (measured at up to 4 in
+10 during one evening, on this Space and on the most popular ZeroGPU Spaces
+alike). Such a reply carries no contract header, so the browser client sends
+the same request again after 0.4 s and 1.2 s; uploads and chat turns included,
+since nothing was processed. The layout's status fetch retries once, and
+`check-deploy.sh` uses curl's retries. What remains is reported as "isn't
+reachable".
+
+**The model provider must accept datacenter traffic.** AgentRouter sits
+behind an Alibaba Cloud web application firewall that serves a JavaScript
+challenge page to requests from Hugging Face's addresses (a home connection
+passes). The backend then reports "the provider answered with a web page, not a
+reply" and logs the start of that page. No backend setting gets past a browser
+challenge; point the Space at a provider that serves servers instead. All four
+variables are read by the same adapter:
+
+| Variable | Hugging Face Inference Providers (OpenAI-compatible) |
+|---|---|
+| `AGENTROUTER_BASE_URL` | `https://router.huggingface.co/v1` |
+| `AGENTROUTER_API_KEY` | a Hugging Face token with the *inference* permission (billed to that account) |
+| `AGENTROUTER_MODEL` | `deepseek-ai/DeepSeek-V4-Flash` (or another id from `GET /v1/models`) |
+| `AGENTROUTER_USER_AGENT` | any value; only AgentRouter checks it |
+
+DeepSeek's own API or any other OpenAI-compatible endpoint works the same way.
+Set them as Space secrets/variables (`hf spaces secrets add`,
+`hf spaces variables add`) and restart the Space; the frontend needs no change.
 
 What the frontend does when the backend is not there yet: the layout asks the
 backend for its status while rendering, with a three-second limit. If that

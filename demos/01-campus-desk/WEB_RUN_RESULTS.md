@@ -373,3 +373,30 @@ Hugging Face Space. Checked on this Mac; no Space or Vercel project was created.
 Not verified: a real Space (ZeroGPU flavour availability, cold-start time,
 `preload=False` leaving `embeddings: loading` until the first upload), Vercel's
 proxy limits for a 40 MB upload and a 40 s streamed answer, and the live model.
+
+### Hosted deployment brought up — September 29, 2026
+
+- Vercel project `campus-desk` (Root Directory `demos/01-campus-desk`, Node
+  22) had no environment variables, so `/api/*` rewrote to 127.0.0.1 and Vercel
+  answered `DNS_HOSTNAME_RESOLVED_PRIVATE`. `CAMPUS_API_URL` was added for
+  Production and Preview and production redeployed (33 s). The full check
+  passed through https://campus-desk-chi.vercel.app: status v2, upload stream
+  (7 events), chat stream, delete.
+- The Space `Israel-Durotoye/campus-guide-api` (ZeroGPU, public) matched the
+  repository byte for byte. `preload=True` was deployed: embeddings reached
+  `ready` about 220 s after start (the model downloaded twice, once per
+  process, in the startup log).
+- `AGENTROUTER_API_KEY` was added as a Space secret. Generation then failed
+  with "empty reply" (streaming) and "unexpected response" (profile, overview)
+  while the same key answered from the local backend. Server-side logging of
+  provider failures was added and showed the cause: AgentRouter's Alibaba
+  Cloud WAF returns an HTML challenge page to the Space, which the openai SDK
+  hands back as a string. The adapter now names that failure and retries it
+  once; the fix is a provider that serves datacenter traffic (Hugging Face's
+  router answered a DeepSeek test completion with the account token).
+- Hugging Face's edge returned 502 for 1 to 4 requests in 10 during the
+  evening, on this Space and on `black-forest-labs/FLUX.1-schnell` alike, with
+  nothing in the app log. The browser client, the layout's status fetch and
+  `check-deploy.sh` now retry such replies.
+- Backend tests: 101 passed; root suite and provider tests pass; lint,
+  TypeScript, web tests and the production build pass.

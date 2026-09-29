@@ -47,39 +47,74 @@ const OFFLINE =
 const INCOMPATIBLE =
   "The Campus Guide backend is out of date. Deploy the backend that belongs with this frontend.";
 
+/**
+ * A hosted backend's edge (a Hugging Face Space, for instance) now and then
+ * answers 502 before the request reaches the backend at all. Such a reply has
+ * no contract header, so it is safe to send the same request again, uploads
+ * and chat turns included: nothing was processed. Two more attempts, spaced
+ * out, take a one-in-ten failure down to one in a thousand.
+ */
+const RETRY_DELAYS_MS = [400, 1200];
+
+function wait(ms: number, signal?: AbortSignal | null): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const abort = () =>
+      reject(signal?.reason ?? new DOMException("Aborted", "AbortError"));
+    if (signal?.aborted) return abort();
+    const timer = window.setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      abort();
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 async function request(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
-  let response: Response;
-  try {
-    response = await fetch(path, {
-      ...init,
-      headers: { ...init.headers, "X-Workspace-Id": workspaceId() },
-      cache: "no-store",
+  for (let attempt = 0; ; attempt++) {
+    const retry = attempt < RETRY_DELAYS_MS.length;
+    let response: Response;
+    try {
+      response = await fetch(path, {
+        ...init,
+        headers: { ...init.headers, "X-Workspace-Id": workspaceId() },
+        cache: "no-store",
+      });
+    } catch (cause) {
+      if ((cause as Error)?.name === "AbortError") throw cause;
+      if (!retry) throw new ApiError(OFFLINE);
+      await wait(RETRY_DELAYS_MS[attempt], init.signal);
+      continue;
+    }
+    const problem = backendProblem({
+      ok: response.ok,
+      versionHeader: response.headers.get(API_VERSION_HEADER),
     });
-  } catch (cause) {
-    if ((cause as Error)?.name === "AbortError") throw cause;
-    throw new ApiError(OFFLINE);
+    if (problem === "unreachable" && retry) {
+      await wait(RETRY_DELAYS_MS[attempt], init.signal);
+      continue;
+    }
+    if (problem === "incompatible") throw new ApiError(INCOMPATIBLE);
+    if (problem === "unreachable") throw new ApiError(OFFLINE);
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      throw new ApiError(
+        body?.error ||
+          (response.status >= 500
+            ? OFFLINE
+            : `Request failed (${response.status}).`),
+      );
+    }
+    return response;
   }
-  const problem = backendProblem({
-    ok: response.ok,
-    versionHeader: response.headers.get(API_VERSION_HEADER),
-  });
-  if (problem === "incompatible") throw new ApiError(INCOMPATIBLE);
-  if (problem === "unreachable") throw new ApiError(OFFLINE);
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-    throw new ApiError(
-      body?.error ||
-        (response.status >= 500
-          ? OFFLINE
-          : `Request failed (${response.status}).`),
-    );
-  }
-  return response;
 }
 
 /** Parse a newline-delimited JSON stream, yielding one object per line. */

@@ -26,6 +26,10 @@ WORKSPACE="$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/campus-guide-check.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
+# Hugging Face's edge now and then answers 502 before a request reaches the
+# Space; curl retries those (and connection failures) like the browser client does.
+RETRY="--retry 3 --retry-delay 1"
+
 fail() { echo "FAIL: $*" >&2; exit 1; }
 json() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(eval(sys.argv[2], {}, {"d": d}))' "$@"; }
 header() { tr -d '\r' < "$1" | awk -v k="$(echo "$2" | tr 'A-Z' 'a-z')" -F': ' 'tolower($1)==k {print $2}' | tail -1; }
@@ -33,7 +37,7 @@ header() { tr -d '\r' < "$1" | awk -v k="$(echo "$2" | tr 'A-Z' 'a-z')" -F': ' '
 echo "checking $BASE against frontend contract v$EXPECTED (workspace $WORKSPACE)"
 
 # 1. Status: the header is what lib/api.ts checks on every reply.
-code="$(curl -sS --max-time 60 -o "$TMP/status.json" -D "$TMP/status.h" -w '%{http_code}' "$BASE/api/status")" \
+code="$(curl -sS $RETRY --max-time 60 -o "$TMP/status.json" -D "$TMP/status.h" -w '%{http_code}' "$BASE/api/status")" \
   || fail "GET /api/status did not answer (is the Space awake and public? does CAMPUS_API_URL point at it?)"
 [ "$code" = "200" ] || fail "GET /api/status returned HTTP $code: $(head -c 300 "$TMP/status.json")"
 got="$(header "$TMP/status.h" X-Campus-API-Version)"
@@ -43,20 +47,20 @@ body_version="$(json "$TMP/status.json" 'd.get("apiVersion")')"
 echo "ok   /api/status: contract v$got, generation=$(json "$TMP/status.json" 'd["generation"]'), model=$(json "$TMP/status.json" 'd["model"]'), embeddings=$(json "$TMP/status.json" 'd["embeddings"]["status"]'), ocr=$(json "$TMP/status.json" 'd["ocr"]["enabled"]')"
 
 # 2. A workspace-scoped route, the way the browser calls it.
-code="$(curl -sS --max-time 60 -H "X-Workspace-Id: $WORKSPACE" -o "$TMP/docs.json" -D "$TMP/docs.h" -w '%{http_code}' "$BASE/api/documents")"
+code="$(curl -sS $RETRY --max-time 60 -H "X-Workspace-Id: $WORKSPACE" -o "$TMP/docs.json" -D "$TMP/docs.h" -w '%{http_code}' "$BASE/api/documents")"
 [ "$code" = "200" ] || fail "GET /api/documents returned HTTP $code: $(head -c 300 "$TMP/docs.json")"
 [ "$(header "$TMP/docs.h" X-Campus-API-Version)" = "$EXPECTED" ] || fail "/api/documents reply lacks the contract header (a proxy answered instead of the backend?)"
 echo "ok   /api/documents: $(json "$TMP/docs.json" 'len(d["documents"])') documents in a fresh workspace"
 
 # 3. The API docs are reachable through the same path.
-code="$(curl -sS --max-time 60 -o /dev/null -w '%{http_code}' "$BASE/api/docs")"
+code="$(curl -sS $RETRY --max-time 60 -o /dev/null -w '%{http_code}' "$BASE/api/docs")"
 [ "$code" = "200" ] && echo "ok   /api/docs" || echo "warn /api/docs returned HTTP $code"
 
 $FULL || { echo "done. Add --full to upload a text file, stream an answer and delete it."; exit 0; }
 
 # 4. Upload (NDJSON stream) -> chat (NDJSON stream) -> delete.
 printf 'Campus Guide deployment check.\n\nLibrary hours\nThe library closes at 9 pm on weekdays and at 5 pm on Saturdays.\n' > "$TMP/check.txt"
-curl -sS -N --max-time 300 -H "X-Workspace-Id: $WORKSPACE" -F "file=@$TMP/check.txt;type=text/plain" \
+curl -sS $RETRY -N --max-time 300 -H "X-Workspace-Id: $WORKSPACE" -F "file=@$TMP/check.txt;type=text/plain" \
   -o "$TMP/upload.ndjson" -D "$TMP/upload.h" "$BASE/api/documents" || fail "POST /api/documents failed"
 [ "$(header "$TMP/upload.h" X-Campus-API-Version)" = "$EXPECTED" ] || fail "upload reply lacks the contract header"
 DOC_ID="$(python3 - "$TMP/upload.ndjson" <<'PY'
@@ -74,7 +78,7 @@ print(done[0]["document"]["id"])
 PY
 )" || fail "upload did not produce a document"
 
-curl -sS -N --max-time 300 -H "X-Workspace-Id: $WORKSPACE" -H 'Content-Type: application/json' \
+curl -sS $RETRY -N --max-time 300 -H "X-Workspace-Id: $WORKSPACE" -H 'Content-Type: application/json' \
   -d '{"message":"When does the library close on weekdays?","history":[],"mode":"keyword"}' \
   -o "$TMP/chat.ndjson" -D "$TMP/chat.h" "$BASE/api/chat" || fail "POST /api/chat failed"
 [ "$(header "$TMP/chat.h" X-Campus-API-Version)" = "$EXPECTED" ] || fail "chat reply lacks the contract header"
@@ -97,6 +101,6 @@ else:
     print("     no generated answer (no model key on the backend?); the passages were returned instead")
 PY
 
-code="$(curl -sS --max-time 60 -X DELETE -H "X-Workspace-Id: $WORKSPACE" -o /dev/null -w '%{http_code}' "$BASE/api/documents/$DOC_ID")"
+code="$(curl -sS $RETRY --max-time 60 -X DELETE -H "X-Workspace-Id: $WORKSPACE" -o /dev/null -w '%{http_code}' "$BASE/api/documents/$DOC_ID")"
 [ "$code" = "200" ] && echo "ok   deleted the check document" || echo "warn DELETE returned HTTP $code; remove document $DOC_ID by hand"
 echo "done: frontend and backend agree on contract v$EXPECTED at $BASE"
