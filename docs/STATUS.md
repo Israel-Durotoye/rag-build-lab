@@ -21,8 +21,10 @@ section within a word budget; replies are streamed with checked citations and
 the notes' own caveats quoted beside them; follow-ups carry earlier questions
 and never earlier answers. A Compare page runs one question, or a set, against
 both chunkings without declaring a winner, and a Practise page writes quizzes
-and flashcards whose quotes are checked against the notes. Nothing has been
-deployed. See [its guide](../demos/02-study-companion/WEB_README.md) and
+and flashcards whose quotes are checked against the notes. It is live at
+<https://study-companion-kappa-self.vercel.app>, with its backend on the Space
+`Israel-Durotoye/study-companion-api`. See
+[its guide](../demos/02-study-companion/WEB_README.md) and
 [what was run](../demos/02-study-companion/WEB_RUN_RESULTS.md).
 
 The other eight demos retain their Python/Streamlit interfaces, as do these two
@@ -31,7 +33,7 @@ alongside their websites.
 | Demo | Implemented now | Still to build or measure |
 |---|---|---|
 | Campus Desk | Synthetic handbook viewer, side-by-side evidence, metadata citation labels, optional generation, seven fixed questions, answer-support checklist and 75-second script | Held-out paraphrase/near-miss evaluation; robust semantic answerability; live model verification |
-| Study Companion | Own UI with explanation (verbatim offline, optional model), supporting sections and original source; fixed/section chunking; parent-section expansion under a 250-word budget; one question-only follow-up per topic; reset; saved section vs fixed runs over eight questions (no winner declared); manual exception checklist. **Website:** uploads (PDF, Word, text, Markdown) and sample notes; sections; both chunkings indexed per workspace; hybrid retrieval; expansion within an adjustable budget; streamed explanations at three levels with checked citations; caveats quoted by rule; follow-ups by question only; chunking lab and question sets; quizzes, flashcards and recall cards with quote checks; per-step trace pages; live model check of the exception on five replies (all kept it) | Deployment; held-out/paraphrase questions; semantic answerability (matches by meaning alone are flagged, not judged); answer-quality evaluation; long documents; scanned notes through this site |
+| Study Companion | Own UI with explanation (verbatim offline, optional model), supporting sections and original source; fixed/section chunking; parent-section expansion under a 250-word budget; one question-only follow-up per topic; reset; saved section vs fixed runs over eight questions (no winner declared); manual exception checklist. **Website:** uploads (PDF, Word, text, Markdown) and sample notes; sections; both chunkings indexed per workspace; hybrid retrieval; expansion within an adjustable budget; streamed explanations at three levels with checked citations; caveats quoted by rule; follow-ups by question only; chunking lab and question sets; quizzes, flashcards and recall cards with quote checks; per-step trace pages; live model check of the exception on five replies (all kept it); deployed (Vercel and a Hugging Face Space) and checked through the live address | A fine-grained model token in place of the login token; held-out/paraphrase questions; semantic answerability (matches by meaning alone are flagged, not judged); answer-quality evaluation; long documents; scanned notes through this site |
 | Manual Finder | Device filter, mandatory device choice, optional dense/hybrid/RRF | Larger identifier/paraphrase evaluation |
 | Repo Guide | Snapshot fixture, commit-pinned Git importer, line citations, optional reranker | AST chunking, real model comparison and latency experiment |
 | Paper Compare | Separate retrieval per selected document; unsupported field can yield no match | Structured claim-by-claim comparison, 20 development questions and held-out set |

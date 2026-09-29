@@ -1,7 +1,9 @@
 # Study Companion website — what was actually run
 
-Checked locally on 29 September 2026, on macOS 12 (Intel). Nothing was
-deployed: no Space, no Vercel project, no other hosted resource was created.
+Checked locally on 29 September 2026, on macOS 12 (Intel), and deployed the
+same day. The local checks come first, as they were made before anything was
+published; [the hosted deployment](#hosted-deployment--29-september-2026) is
+recorded at the end.
 
 ## Tested versions
 
@@ -23,7 +25,7 @@ Run inside `demos/02-study-companion` unless a row says otherwise.
 | `npm test` | 31 passed, 0 failed, 0 skipped |
 | `npm run build` | Production build passed; 11 routes |
 | `python -m pip check` (this demo's environment) | No broken requirements |
-| `./hf-space/deploy-space.sh <name> --dry-run` | Assembled 41 files; the assembled folder started on its own and served the sample notes. Nothing was uploaded |
+| `./hf-space/deploy-space.sh <name> --dry-run` | Assembled 41 files; the assembled folder started on its own and served the sample notes |
 | Repository root: `python -m pytest -q` | 87 passed (86 before; one new test for joining a short last window) |
 | Repository root: `python scripts/evaluate_all.py` | 30/30 across ten demos |
 | Repository root: `python demos/02-study-companion/compare_chunking.py` | Reproduced the saved `runs/chunking-section.json` and `runs/chunking-fixed.json` exactly (apart from the timestamp), so the command-line demo is unchanged |
@@ -166,15 +168,90 @@ picture depends on the settings. These are observations on eight authored
 questions over one small synthetic file. They do not show that either
 chunking is better in general, and no winner is declared.
 
+## Hosted deployment — 29 September 2026
+
+| Part | Where | How it is set up |
+|---|---|---|
+| Frontend | <https://study-companion-kappa-self.vercel.app> | Vercel project `study-companion`, connected to this repository, production branch `main`, Root Directory `demos/02-study-companion`, Node 22, `npm ci`, `npm run build`. `STUDY_API_URL` is set for Production and Preview |
+| Backend | <https://israel-durotoye-study-companion-api.hf.space> | Space `Israel-Durotoye/study-companion-api`: Gradio SDK, ZeroGPU hardware, public. Uploaded by `hf-space/deploy-space.sh --public` from commit `448ac92` |
+| Model | Hugging Face Inference Providers | Space variables `STUDY_MODEL_BASE_URL=https://router.huggingface.co/v1`, `STUDY_MODEL=deepseek-ai/DeepSeek-V4-Flash`, `STUDY_MODEL_USER_AGENT`, `GRADIO_SSR_MODE=false`; the key is the Space secret `STUDY_MODEL_API_KEY` |
+
+**Before uploading.** The assembled Space folder was run on this Mac with
+Gradio 6.28.0. That showed the backend's startup never ran under Gradio:
+`/api/status` was still at `embeddings: loading` 90 seconds after start.
+Gradio replaces the lifespan of an app it is handed with one built from
+`app_kwargs`. The entrypoint now passes the app's lifespan along, after which
+the same run reported `ready` 9 seconds after start and
+`check-deploy.sh --full` passed against it. The router was also tried from
+here with the app's own model client: a streamed reply, a JSON reply and a
+streamed JSON quiz (three items, three quotes verified) all worked.
+
+**The Space.** The build finished and the Space was `RUNNING` within about
+four minutes of the upload. Its log shows the embedding model being fetched at
+start, and the first status request answered contract version 1,
+`generation: true`, `embeddings: ready`. The log also holds one
+"Exception ignored in BaseEventLoop.__del__" traceback from start-up; nothing
+failed because of it.
+
+**Checks that passed.**
+
+- `./check-deploy.sh https://israel-durotoye-study-companion-api.hf.space --full`
+  and `./check-deploy.sh https://study-companion-kappa-self.vercel.app --full`:
+  contract version 1 on every reply, the sample notes and their eight
+  questions, an upload (8 events), a streamed answer that began "No, negative
+  feedback does not guarantee stability", the comparison, recall cards, and
+  the check notes deleted afterwards.
+- A browser run through the Vercel address (headless Chromium, a fresh
+  workspace), with no page error, console error or HTTP error status:
+  - the sample notes loaded and their overview was written by the model;
+  - "Does negative feedback guarantee stability?" showed its first words after
+    1.3 s and finished after 2.6 s, with the exception quoted in the
+    **Watch for** box; "What about delay?" with fixed-length chunks was read as
+    a follow-up and searched as "delay negative feedback stability";
+  - the Retrieval, Context and Generation pages showed the trace (793 tokens
+    for the second reply);
+  - the sample set of eight questions gave the same figures as locally: every
+    expected section in the context in 7 of 7 for both chunkings, 325 and 282
+    context words on average;
+  - a quiz of four questions on "feedback and stability" was written in
+    47.7 s, all four kept, and the first item's quote was found in the notes;
+  - a two-page PDF uploaded in 1.3 s and became 5 sections cited by page;
+  - the explanation level was changed and saved;
+  - Home, Ask and Compare had no horizontal overflow at phone width.
+  The notes and the practice set made by this run were deleted afterwards.
+- GitHub Actions on the pushed commit: "Test RAG demos" passed, and "Check
+  the websites" passed for both sites (lint, types, tests and build on
+  Node 22; backend tests on Python 3.11 and 3.12).
+- Campus Guide was redeployed by the same push, its frontend unchanged, and
+  answered `/api/status` with contract version 2 through its own address.
+
+**Open items.**
+
+- The Space secret is the Hugging Face CLI's login token, as for Campus Guide.
+  It can write to the whole account and expires on 28 October 2026. Replace
+  it with a fine-grained token that has only the inference permission:
+  `hf spaces secrets add Israel-Durotoye/study-companion-api -s STUDY_MODEL_API_KEY`
+  with that token in the environment. Generation stops when the token expires.
+- Inference is charged to the account's monthly included credits.
+- Writing a quiz took 47.7 s on the hosted model. It streams, so the
+  connection stayed open, but it is slow.
+- Notes on the Space are kept in ephemeral storage and disappear when the
+  Space restarts.
+- This is the account's second ZeroGPU Space. Hugging Face's published limit
+  for free accounts is two, so a third website may need a paid plan or
+  another host. Check the current limit before planning it.
+- Campus Guide's Space entrypoint hands its app to Gradio in the same way and
+  has not been changed or redeployed. If its models are not preloaded at
+  start, the same one-line change applies.
+
 ## Not verified
 
-- No deployment was made, so the Space entrypoint (`hf-space/app.py`, which
-  needs Gradio and the `spaces` package) and the Vercel configuration were not
-  run. The assembled backend was run only with plain FastAPI.
-- Scanned pages and Word files were not uploaded through this site. They go
-  through the extraction code shared with Campus Guide, whose tests (run above)
-  exercise real OCR and Word files.
+- Scanned pages and Word files were not uploaded through this site, locally
+  or hosted. They go through the extraction code shared with Campus Guide,
+  whose tests (run above) exercise real OCR and Word files. OCR on the Space
+  was not exercised.
 - No large set of notes was tried; the largest upload was about 850 words.
-  Timing and memory for long documents are unmeasured here.
-- The GitHub Actions workflow was edited to cover this site and has not run.
+  Timing and memory for long documents, and large uploads through Vercel's
+  proxy, are unmeasured.
+- How long the Space takes to wake after sleeping was not measured.
 - Answer quality was not measured. The checks above read a handful of replies.

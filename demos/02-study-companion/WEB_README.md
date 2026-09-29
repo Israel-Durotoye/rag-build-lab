@@ -1,5 +1,8 @@
 # Study Companion — Python backend + Next.js frontend
 
+Live at <https://study-companion-kappa-self.vercel.app>. Its backend is the
+Space [Israel-Durotoye/study-companion-api](https://huggingface.co/spaces/Israel-Durotoye/study-companion-api).
+
 Study Companion is for a student trying to understand a particular set of
 notes. They add their lecture notes or a chapter, ask what they don't follow,
 and get three things back: an explanation, the exact sections behind it, and
@@ -201,8 +204,10 @@ The command-line demo keeps its own values in `config.json` (4, 250, 60, 40).
 
 ## Deploy
 
-Nothing here deploys anything; publishing is a separate, deliberate step. The
-steps are the ones Campus Guide uses.
+No command in this section runs by itself; publishing is a separate,
+deliberate step. The steps are the ones Campus Guide uses, and
+[the run record](WEB_RUN_RESULTS.md#hosted-deployment--29-september-2026) shows
+how the live site was set up.
 
 ### Backend on a Hugging Face Space (Gradio + ZeroGPU)
 
@@ -221,14 +226,22 @@ notes use ephemeral storage and disappear when the Space restarts.
 
 On the Space, Gradio owns the homepage, so the FastAPI routes are registered
 under `/study-api/*` and a middleware maps the public `/api/*` paths onto
-them.
+them. Gradio also replaces the startup hook of an app it is handed, so
+`hf-space/app.py` passes the backend's own along (`app_kwargs={'lifespan': …}`);
+without that the models are not preloaded.
 
 ### Frontend on Vercel
 
 Root Directory `demos/02-study-companion`, framework Next.js, Node.js 22, and
 `STUDY_API_URL` set to the Space URL **before building**. The browser only
 talks to the Vercel domain; Next.js proxies `/api/*` to the Space, so no CORS
-setup is needed.
+setup is needed. The project is connected to this repository, so a push to
+`main` redeploys it.
+
+`vercel link` adds a `VERCEL_OIDC_TOKEN` line to `.env.local` and writes a
+`.gitignore` into this folder. Neither is needed: the backend does not use the
+token, and the repository's own `.gitignore` already covers `.vercel` and
+`.env.local`.
 
 ### Check a deployment
 

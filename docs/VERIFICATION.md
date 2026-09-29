@@ -6,8 +6,10 @@ type checking and the production build; the root suite passed 87 tests and 30/30
 cases; and every page was driven in a headless browser with and without a model. Five live
 replies to the exception question were recorded and read, and all kept the exception.
 Campus Guide was re-run in full after its shared code moved to `rag_core/web` (101 backend
-tests, 12 frontend tests, lint, types and build passed). Nothing was deployed. See
-[the record](../demos/02-study-companion/WEB_RUN_RESULTS.md).
+tests, 12 frontend tests, lint, types and build passed). The site was then deployed (frontend
+on Vercel, backend on a Hugging Face Space) and checked through its live address with
+`check-deploy.sh --full` and a browser run; GitHub Actions passed for both websites on the
+pushed commit. See [the record](../demos/02-study-companion/WEB_RUN_RESULTS.md).
 
 Campus Desk's TypeScript migration was verified from `demos/01-campus-desk`:
 24 web tests, 7/7 web evaluation questions, type checking, linting and the production
