@@ -400,3 +400,26 @@ proxy limits for a 40 MB upload and a 40 s streamed answer, and the live model.
   `check-deploy.sh` now retry such replies.
 - Backend tests: 101 passed; root suite and provider tests pass; lint,
   TypeScript, web tests and the production build pass.
+
+### Generation on the hosted deployment — September 29, 2026
+
+The Space now uses Hugging Face Inference Providers: `AGENTROUTER_BASE_URL`
+`https://router.huggingface.co/v1`, `AGENTROUTER_MODEL`
+`deepseek-ai/DeepSeek-V4-Flash`, and the key as a Space secret. Before the
+switch the adapter was run locally against the router: plain and streamed
+replies both answered with the citation, on DeepSeek-V4-Flash and
+DeepSeek-V4.1-Flash (the latter also streams its reasoning).
+
+Through https://campus-desk-chi.vercel.app after the Space restarted:
+
+- `check-deploy.sh --full` passed; the chat turn streamed 11 events and ended
+  `answered` with "The library closes at 9 pm on weekdays [1]."
+- `POST /api/profile` returned a welcome page in 9.4 s (tagline, six topics,
+  six quick actions) and `POST /api/documents/{id}/overview` a summary with
+  four questions in 4.9 s, from a three-section test handbook.
+
+Open items: the secret is the CLI's OAuth login token, which expires on
+28 October 2026 and should be replaced with a fine-grained token that has only
+the inference permission. The account is on the free plan, so inference runs
+on its monthly included credits. Not verified: a large PDF upload through
+Vercel's proxy and OCR on the Space.
