@@ -34,13 +34,21 @@ class Embedder(Protocol):
     def query(self, text: str) -> list[float]: ...
 
 
-def chunk_document(doc: dict, mode: str = 'section', size: int = 120) -> list[Chunk]:
-    if mode not in {'section', 'fixed'} or size < 1:
+def chunk_document(doc: dict, mode: str = 'section', size: int = 120, min_tail: int = 0) -> list[Chunk]:
+    """Chunk a document by section, or into fixed windows of ``size`` words.
+
+    A section's last window can be a few words long. With ``min_tail``, a last
+    window shorter than that joins the window before it instead of becoming a
+    chunk of its own."""
+    if mode not in {'section', 'fixed'} or size < 1 or not 0 <= min_tail <= size:
         raise ValueError('Invalid chunk mode or size')
     result = []
     for section in doc['sections']:
         words = section['text'].split()
-        pieces = [section['text']] if mode == 'section' else [' '.join(words[i:i+size]) for i in range(0, len(words), size)]
+        windows = [words[i:i+size] for i in range(0, len(words), size)]
+        if len(windows) > 1 and len(windows[-1]) < min_tail:
+            windows[-2].extend(windows.pop())
+        pieces = [section['text']] if mode == 'section' else [' '.join(w) for w in windows]
         for i, text in enumerate(pieces):
             result.append(Chunk(f"{doc['id']}:{section['id']}:{i}", doc['id'], section['title'], text,
                                 section.get('location', section['id']),
@@ -83,8 +91,8 @@ class Index:
         self.db.close()
 
     @synchronized
-    def replace(self, documents: list[dict], mode='section', size=120):
-        chunks = [c for d in documents for c in chunk_document(d, mode, size)]
+    def replace(self, documents: list[dict], mode='section', size=120, min_tail=0):
+        chunks = [c for d in documents for c in chunk_document(d, mode, size, min_tail)]
         if len({c.id for c in chunks}) != len(chunks):
             raise ValueError('Duplicate document/section identifiers')
         fingerprint = sha256(json.dumps([asdict(c) for c in chunks], sort_keys=True).encode()).hexdigest()

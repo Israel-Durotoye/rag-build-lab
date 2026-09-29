@@ -221,7 +221,7 @@ class OpenAICompatible:
                     skip.add(model)
         raise ProviderError(f"Model unavailable: {attempts[-1]['reason'] if attempts else 'no attempts'}") from None
 
-    def stream(self, messages, *, max_tokens=None, temperature=0.2):
+    def stream(self, messages, *, max_tokens=None, temperature=0.2, json_mode=False):
         """Yield events: attempt, reasoning (delta), token (delta), retry, end.
 
         A failure before the first answer token is retried (the caller should
@@ -240,9 +240,10 @@ class OpenAICompatible:
             chunks = None
             seen = 0
             try:
+                options = {'response_format': {'type': 'json_object'}} if json_mode else {}
                 chunks = self.client.chat.completions.create(
                     model=model, messages=messages, temperature=temperature, stream=True,
-                    stream_options={'include_usage': True}, max_tokens=budget)
+                    stream_options={'include_usage': True}, max_tokens=budget, **options)
                 raw = _not_a_completion(chunks)
                 if raw is not None:
                     raise RelayResponse(f'not a completion: {raw}')

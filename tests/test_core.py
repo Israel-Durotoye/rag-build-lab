@@ -156,3 +156,18 @@ def test_agent_budget_invalid_tools_and_repetition():
     r=bounded_search(p,'inspection',planner=lambda *a:{'tool':'search','query':'inspection'})
     assert r['stop_reason']=='repeated_query'
     with pytest.raises(ValueError):bounded_search(p,'inspection',budget=4)
+
+
+def test_a_short_last_window_can_join_the_one_before():
+    doc={'id':'d','sections':[{'id':'long','title':'Long','text':' '.join(f'w{i}' for i in range(101))},
+                              {'id':'short','title':'Short','text':'only three words'}]}
+    plain=chunk_document(doc,mode='fixed',size=50)
+    assert [len(c.text.split()) for c in plain]==[50,50,1,3]  # the default leaves a one-word chunk
+    joined=chunk_document(doc,mode='fixed',size=50,min_tail=12)
+    assert [(c.id,len(c.text.split())) for c in joined]==[('d:long:0',50),('d:long:1',51),('d:short:0',3)]
+    assert ' '.join(c.text for c in joined[:2])==doc['sections'][0]['text']  # nothing is lost or repeated
+    assert [len(c.text.split()) for c in chunk_document(doc,mode='fixed',size=50,min_tail=1)]==[50,50,1,3]
+    assert len(chunk_document(doc,min_tail=12))==2  # section chunks are never affected
+    with pytest.raises(ValueError): chunk_document(doc,mode='fixed',size=50,min_tail=51)
+    index=Index(); index.replace([doc],mode='fixed',size=50,min_tail=12)
+    assert [c.id for c in index.chunks()]==['d:long:0','d:long:1','d:short:0']

@@ -10,4 +10,14 @@ Special workflows are small functions on this same pipeline. Paper comparison ru
 
 Trust boundary: the tenant simulator is not authentication. Only use synthetic data locally. Source text is untrusted even if retrieved. No generated code is executed. Provider endpoints and model names come from server environment variables, not documents or UI requests.
 
-No retry loop, answer cache or background ingestion service is present. Provider requests have a finite timeout and fall back to source-search mode. The tiny fixture design allows synchronous, inspectable execution; larger corpora need batching, embedding persistence and measured resource budgets.
+## The websites
+
+Campus Guide and Study Companion each add a FastAPI backend and a Next.js frontend inside their own demo folder. What both backends need is in `rag_core/web`: reading PDF, Word and text files (with OCR), FastEmbed embeddings, hybrid retrieval that returns a full trace, citation checks, follow-up rewriting and NDJSON streaming. A backend supplies an object with a keyword index, its chunks and their vectors, and `rag_core.web.retrieval.retrieve` searches it. Campus Guide has one such object per workspace. Study Companion has two, one for each chunking of the same notes, so a question can be run against either.
+
+Each demo keeps its own rules. Campus Guide chunks by characters with overlap and writes a welcome page. Study Companion divides notes into sections, chunks them by section and by fixed windows (`rag_core.core.chunk_document`), expands small matches to their parent section within a word budget (`rag_core.study.build_context`), quotes the notes' caveats beside each answer and checks practice items against the notes. Its follow-ups carry earlier questions and never earlier answers.
+
+Browsers are separated by a random workspace ID, which is isolation and not authentication. Model keys are read by the backend only. Streaming model calls retry with backoff and optional fallback models (`rag_core.providers.OpenAICompatible`).
+
+## The Python demos
+
+In the Python demos, no retry loop, answer cache or background ingestion service is present. Provider requests have a finite timeout and fall back to source-search mode. The tiny fixture design allows synchronous, inspectable execution; larger corpora need batching, embedding persistence and measured resource budgets.

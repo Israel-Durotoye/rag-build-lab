@@ -2,6 +2,36 @@
 
 Session 6 · A student trying to understand a particular set of notes.
 
+## The website
+
+Study Companion is also a website in this folder: a Python (FastAPI) backend
+and a Next.js frontend. Students add their own notes (PDF, Word, text or
+Markdown) or load the sample notes below, ask questions and follow-ups, compare
+the two chunkings on the Compare page, and practise with quizzes and
+flashcards that are checked against the notes.
+
+```bash
+cd demos/02-study-companion
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ../.. -r backend/requirements.txt
+npm ci
+npm run api    # Python backend on :8001
+npm run dev    # frontend on :3001 (second terminal)
+```
+
+See [setup, architecture and deployment](WEB_README.md) and [what was actually
+run](WEB_RUN_RESULTS.md). The website uses the same parent-section expansion
+and verbatim explanation code as the demo below (`rag_core/study.py`), with its
+own defaults (5 matches, 600-word budget, 50-word windows) and these
+differences: follow-ups are not limited to one per topic, a model rewrites the
+follow-up query when one is configured, and a fixed window's short tail joins
+the window before it.
+
+The rest of this page describes the command-line and Streamlit demo, which is
+unchanged and still runs offline with no installation beyond Python.
+
+## The learning demo
+
 Ask a question about the notes and get three things: an explanation, the exact
 supporting sections, and the original source text. You can ask one follow-up per
 topic. The sidebar switches between section-aware and fixed-length chunking so

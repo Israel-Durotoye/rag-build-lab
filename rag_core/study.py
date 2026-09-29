@@ -41,7 +41,9 @@ def build_context(chunks, documents, budget, expand_below, expand=True):
         if key in by_section:  # the whole parent section is already in context
             by_section[key]['matched_chunk_ids'].append(c.id)
             continue
-        partial = c.text != section['text']
+        # Compared word by word: fixed windows are re-joined with single spaces,
+        # so a window holding a whole multi-paragraph section is not partial.
+        partial = c.text.split() != section['text'].split()
         if expand and partial and words(c.text) < expand_below:
             if used + words(section['text']) <= budget:
                 item = _item(c, doc, section, expanded=True)

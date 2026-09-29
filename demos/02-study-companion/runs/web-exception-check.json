@@ -1,0 +1,287 @@
+{
+  "model": "deepseek-v4-flash",
+  "provider": "agentrouter.org",
+  "run_at": "2026-09-29T09:42:17+00:00",
+  "how_to_read": "answer_has_a_keeping_phrase only looks for wordings such as \"not guarantee\". Read each answer: it must not say or imply that negative feedback always makes a system stable.",
+  "checks": [
+    {
+      "chunking": "section",
+      "expand": true,
+      "message": "Does negative feedback guarantee stability?",
+      "earlier": [],
+      "retrieval_query": "Does negative feedback guarantee stability?",
+      "query_written_by": "none",
+      "status": "answered",
+      "model": "deepseek-v4-flash",
+      "answer": "No. Negative feedback does not guarantee stability [1].\n\nHere is how the notes put it:\n\n- Negative feedback subtracts the measured output from the reference to form an error signal, and the controller acts to shrink that error [1].\n- It usually reduces sensitivity to disturbances and to changes in the plant [1].\n- But if the loop gain is too high, or the measurement arrives with too much delay, a negative feedback loop can overshoot, oscillate or diverge [1].\n- So stability must always be checked separately [1].\n\nStability is a property of the whole loop — plant, controller, sensor and any delay together — and adding gain or delay can move a stable loop towards instability [3].",
+      "answer_has_a_keeping_phrase": true,
+      "citations": {
+        "valid": [
+          1,
+          3
+        ],
+        "invalid": []
+      },
+      "exception_in_supporting_sections": true,
+      "exception_among_caveats": true,
+      "sections": [
+        {
+          "n": 1,
+          "id": "controls:feedback:0",
+          "expanded": false,
+          "words": 101
+        },
+        {
+          "n": 2,
+          "id": "controls:open-loop:0",
+          "expanded": false,
+          "words": 51
+        },
+        {
+          "n": 3,
+          "id": "controls:stability:0",
+          "expanded": false,
+          "words": 77
+        },
+        {
+          "n": 4,
+          "id": "controls:closed-loop:0",
+          "expanded": false,
+          "words": 60
+        },
+        {
+          "n": 5,
+          "id": "controls:steady-state:0",
+          "expanded": false,
+          "words": 53
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 894,
+        "completion_tokens": 175,
+        "reasoning_tokens": 0,
+        "total_tokens": 1069
+      },
+      "error": null
+    },
+    {
+      "chunking": "section",
+      "expand": false,
+      "message": "Does negative feedback guarantee stability?",
+      "earlier": [],
+      "retrieval_query": "Does negative feedback guarantee stability?",
+      "query_written_by": "none",
+      "status": "answered",
+      "model": "deepseek-v4-flash",
+      "answer": "No — negative feedback does not guarantee stability [1].\n\nNegative feedback subtracts the measured output from the reference to form an error signal, and the controller acts to shrink that error [1]. It usually reduces sensitivity to disturbances and to changes in the plant [1]. But that is a tendency, not a guarantee: if the loop gain is too high, or the measurement arrives with too much delay, the loop can overshoot, oscillate or diverge [1]. So stability must always be checked separately [1]. The notes also stress that stability is a property of the whole loop — plant, controller, sensor and any delay together — and that adding gain or delay can move a stable loop towards instability [3].",
+      "answer_has_a_keeping_phrase": true,
+      "citations": {
+        "valid": [
+          1,
+          3
+        ],
+        "invalid": []
+      },
+      "exception_in_supporting_sections": true,
+      "exception_among_caveats": true,
+      "sections": [
+        {
+          "n": 1,
+          "id": "controls:feedback:0",
+          "expanded": false,
+          "words": 101
+        },
+        {
+          "n": 2,
+          "id": "controls:open-loop:0",
+          "expanded": false,
+          "words": 51
+        },
+        {
+          "n": 3,
+          "id": "controls:stability:0",
+          "expanded": false,
+          "words": 77
+        },
+        {
+          "n": 4,
+          "id": "controls:closed-loop:0",
+          "expanded": false,
+          "words": 60
+        },
+        {
+          "n": 5,
+          "id": "controls:steady-state:0",
+          "expanded": false,
+          "words": 53
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 894,
+        "completion_tokens": 165,
+        "reasoning_tokens": 20,
+        "total_tokens": 1059
+      },
+      "error": null
+    },
+    {
+      "chunking": "fixed",
+      "expand": true,
+      "message": "Does negative feedback guarantee stability?",
+      "earlier": [],
+      "retrieval_query": "Does negative feedback guarantee stability?",
+      "query_written_by": "none",
+      "status": "answered",
+      "model": "deepseek-v4-flash",
+      "answer": "No. Negative feedback does not guarantee stability [1].\n\nHere's how the notes explain it:\n\n- Negative feedback subtracts the measured output from the reference signal to form an error signal, and the controller acts to shrink that error [1].\n- It usually reduces sensitivity to disturbances and to changes in the plant [1].\n- But two conditions can break it: if the loop gain is too high, or if the measurement arrives with too much delay, the loop can overshoot, oscillate or diverge [1].\n\nSo stability must always be checked separately [1]. The notes also describe stability as a property of the whole loop — plant, controller, sensor and any delay together — and note that adding gain or delay can move a stable loop towards instability [2].",
+      "answer_has_a_keeping_phrase": true,
+      "citations": {
+        "valid": [
+          1,
+          2
+        ],
+        "invalid": []
+      },
+      "exception_in_supporting_sections": true,
+      "exception_among_caveats": true,
+      "sections": [
+        {
+          "n": 1,
+          "id": "controls:feedback",
+          "expanded": true,
+          "words": 101
+        },
+        {
+          "n": 2,
+          "id": "controls:stability",
+          "expanded": true,
+          "words": 77
+        },
+        {
+          "n": 3,
+          "id": "controls:open-loop:0",
+          "expanded": false,
+          "words": 51
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 198,
+        "completion_tokens": 170,
+        "reasoning_tokens": 0,
+        "total_tokens": 368
+      },
+      "error": null
+    },
+    {
+      "chunking": "fixed",
+      "expand": false,
+      "message": "Does negative feedback guarantee stability?",
+      "earlier": [],
+      "retrieval_query": "Does negative feedback guarantee stability?",
+      "query_written_by": "none",
+      "status": "answered",
+      "model": "deepseek-v4-flash",
+      "answer": "No. Negative feedback does not guarantee stability [1].\n\n- Negative feedback subtracts the measured output from the reference to form an error signal, and the controller acts to shrink that error [2]. It usually reduces sensitivity to disturbances and to changes in the plant [1].\n- But that is not the same as stability: if the loop gain is too high, or the measurement arrives with too much delay, a negative feedback loop can overshoot, oscillate or diverge [1].\n- Stability belongs to the whole loop — plant, controller, sensor and any delay together — and adding gain or delay can move a stable loop towards instability [3].\n\nSo stability must always be checked separately [1].",
+      "answer_has_a_keeping_phrase": true,
+      "citations": {
+        "valid": [
+          1,
+          2,
+          3
+        ],
+        "invalid": []
+      },
+      "exception_in_supporting_sections": true,
+      "exception_among_caveats": true,
+      "sections": [
+        {
+          "n": 1,
+          "id": "controls:feedback:1",
+          "expanded": false,
+          "words": 51
+        },
+        {
+          "n": 2,
+          "id": "controls:feedback:0",
+          "expanded": false,
+          "words": 50
+        },
+        {
+          "n": 3,
+          "id": "controls:stability:1",
+          "expanded": false,
+          "words": 27
+        },
+        {
+          "n": 4,
+          "id": "controls:open-loop:0",
+          "expanded": false,
+          "words": 51
+        },
+        {
+          "n": 5,
+          "id": "controls:stability:0",
+          "expanded": false,
+          "words": 50
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 185,
+        "reasoning_tokens": 44,
+        "total_tokens": 932
+      },
+      "error": null
+    },
+    {
+      "chunking": "fixed",
+      "expand": true,
+      "message": "Does it guarantee stability?",
+      "earlier": [
+        "What is negative feedback?"
+      ],
+      "retrieval_query": "Does negative feedback guarantee stability?",
+      "query_written_by": "model",
+      "status": "answered",
+      "model": "deepseek-v4-flash",
+      "answer": "No — negative feedback does not guarantee stability [1].\n\nHere is how the notes put it:\n\n- Negative feedback subtracts the measured output from the reference to form an error signal, and the controller acts to shrink that error [1].\n- It usually reduces sensitivity to disturbances and to changes in the plant [1].\n- But that is not the same as stability. If the loop gain is too high, or the measurement arrives with too much delay, a negative feedback loop can overshoot, oscillate or diverge [1].\n- Stability is a property of the whole loop — plant, controller, sensor and any delay together — and adding gain or delay can move a stable loop towards instability [2].\n\nSo the notes advise checking stability separately [1].",
+      "answer_has_a_keeping_phrase": true,
+      "citations": {
+        "valid": [
+          1,
+          2
+        ],
+        "invalid": []
+      },
+      "exception_in_supporting_sections": true,
+      "exception_among_caveats": true,
+      "sections": [
+        {
+          "n": 1,
+          "id": "controls:feedback",
+          "expanded": true,
+          "words": 101
+        },
+        {
+          "n": 2,
+          "id": "controls:stability",
+          "expanded": true,
+          "words": 77
+        },
+        {
+          "n": 3,
+          "id": "controls:open-loop:0",
+          "expanded": false,
+          "words": 51
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 728,
+        "completion_tokens": 193,
+        "reasoning_tokens": 41,
+        "total_tokens": 921
+      },
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,545 @@
+{
+  "requested_search": "keyword",
+  "options": {
+    "k": 5,
+    "budgetWords": 600,
+    "expandBelowWords": 60,
+    "chunkWords": 50
+  },
+  "expansion_enabled": true,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "run_at": "2026-09-29T09:42:03+00:00",
+  "scope": "Eight authored questions over one synthetic notes file, with the settings above. Not a benchmark; no winner is declared.",
+  "questions": [
+    {
+      "id": "q1",
+      "category": "definition",
+      "question": "What is negative feedback?",
+      "retrieval_query": "What is negative feedback?",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:feedback:0",
+          "controls:open-loop:0"
+        ],
+        "context_ids": [
+          "controls:feedback:0",
+          "controls:open-loop:0"
+        ],
+        "context_sections": [
+          "feedback",
+          "open-loop"
+        ],
+        "expanded": 0,
+        "context_words": 152,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "feedback"
+        ],
+        "exception_in_context": true,
+        "exception_among_caveats": true
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:feedback:1",
+          "controls:feedback:0",
+          "controls:open-loop:0"
+        ],
+        "context_ids": [
+          "controls:feedback",
+          "controls:open-loop:0"
+        ],
+        "context_sections": [
+          "feedback",
+          "open-loop"
+        ],
+        "expanded": 1,
+        "context_words": 152,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "feedback"
+        ],
+        "exception_in_context": true,
+        "exception_among_caveats": true
+      },
+      "expected_sections": [
+        "feedback"
+      ],
+      "only_section_aware": [],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q2",
+      "category": "definition",
+      "question": "Define steady-state error",
+      "retrieval_query": "Define steady-state error",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:steady-state:0",
+          "controls:gain:0",
+          "controls:integral:0",
+          "controls:feedback:0",
+          "controls:closed-loop:0"
+        ],
+        "context_ids": [
+          "controls:steady-state:0",
+          "controls:gain:0",
+          "controls:integral:0",
+          "controls:feedback:0",
+          "controls:closed-loop:0"
+        ],
+        "context_sections": [
+          "steady-state",
+          "gain",
+          "integral",
+          "feedback",
+          "closed-loop"
+        ],
+        "expanded": 0,
+        "context_words": 347,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "steady-state"
+        ]
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:steady-state:0",
+          "controls:gain:0",
+          "controls:integral:0",
+          "controls:feedback:0",
+          "controls:closed-loop:0"
+        ],
+        "context_ids": [
+          "controls:steady-state:0",
+          "controls:gain:0",
+          "controls:integral",
+          "controls:feedback",
+          "controls:closed-loop:0"
+        ],
+        "context_sections": [
+          "steady-state",
+          "gain",
+          "integral",
+          "feedback",
+          "closed-loop"
+        ],
+        "expanded": 2,
+        "context_words": 347,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "steady-state"
+        ]
+      },
+      "expected_sections": [
+        "steady-state"
+      ],
+      "only_section_aware": [],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q3",
+      "category": "comparison",
+      "question": "Compare open-loop and closed-loop control",
+      "retrieval_query": "Compare open-loop and closed-loop control",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:closed-loop:0",
+          "controls:feedback:0",
+          "controls:open-loop:0",
+          "controls:integral:0",
+          "controls:stability:0"
+        ],
+        "context_ids": [
+          "controls:closed-loop:0",
+          "controls:feedback:0",
+          "controls:open-loop:0",
+          "controls:integral:0",
+          "controls:stability:0"
+        ],
+        "context_sections": [
+          "closed-loop",
+          "feedback",
+          "open-loop",
+          "integral",
+          "stability"
+        ],
+        "expanded": 0,
+        "context_words": 362,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "open-loop",
+          "closed-loop"
+        ]
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:closed-loop:0",
+          "controls:open-loop:0",
+          "controls:feedback:1",
+          "controls:integral:0",
+          "controls:stability:1"
+        ],
+        "context_ids": [
+          "controls:closed-loop:0",
+          "controls:open-loop:0",
+          "controls:feedback",
+          "controls:integral",
+          "controls:stability"
+        ],
+        "context_sections": [
+          "closed-loop",
+          "open-loop",
+          "feedback",
+          "integral",
+          "stability"
+        ],
+        "expanded": 3,
+        "context_words": 362,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "open-loop",
+          "closed-loop"
+        ]
+      },
+      "expected_sections": [
+        "open-loop",
+        "closed-loop"
+      ],
+      "only_section_aware": [],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q4",
+      "category": "comparison",
+      "question": "How does proportional control differ from integral action?",
+      "retrieval_query": "How does proportional control differ from integral action?",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:steady-state:0",
+          "controls:integral:0",
+          "controls:gain:0",
+          "controls:feedback:0",
+          "controls:derivative:0"
+        ],
+        "context_ids": [
+          "controls:steady-state:0",
+          "controls:integral:0",
+          "controls:gain:0",
+          "controls:feedback:0",
+          "controls:derivative:0"
+        ],
+        "context_sections": [
+          "steady-state",
+          "integral",
+          "gain",
+          "feedback",
+          "derivative"
+        ],
+        "expanded": 0,
+        "context_words": 339,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "gain",
+          "integral"
+        ]
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:steady-state:0",
+          "controls:integral:1",
+          "controls:integral:0",
+          "controls:gain:0",
+          "controls:feedback:0"
+        ],
+        "context_ids": [
+          "controls:steady-state:0",
+          "controls:integral",
+          "controls:gain:0",
+          "controls:feedback"
+        ],
+        "context_sections": [
+          "steady-state",
+          "integral",
+          "gain",
+          "feedback"
+        ],
+        "expanded": 2,
+        "context_words": 287,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "gain",
+          "integral"
+        ]
+      },
+      "expected_sections": [
+        "gain",
+        "integral"
+      ],
+      "only_section_aware": [
+        "controls:derivative"
+      ],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q5",
+      "category": "explanation",
+      "question": "Why does derivative action make a noisy sensor jitter?",
+      "retrieval_query": "Why does derivative action make a noisy sensor jitter?",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:derivative:0",
+          "controls:gain:0",
+          "controls:integral:0",
+          "controls:steady-state:0",
+          "controls:closed-loop:0"
+        ],
+        "context_ids": [
+          "controls:derivative:0",
+          "controls:gain:0",
+          "controls:integral:0",
+          "controls:steady-state:0",
+          "controls:closed-loop:0"
+        ],
+        "context_sections": [
+          "derivative",
+          "gain",
+          "integral",
+          "steady-state",
+          "closed-loop"
+        ],
+        "expanded": 0,
+        "context_words": 298,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "derivative"
+        ]
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:derivative:0",
+          "controls:gain:0",
+          "controls:stability:1",
+          "controls:integral:0",
+          "controls:closed-loop:0"
+        ],
+        "context_ids": [
+          "controls:derivative:0",
+          "controls:gain:0",
+          "controls:stability",
+          "controls:integral",
+          "controls:closed-loop:0"
+        ],
+        "context_sections": [
+          "derivative",
+          "gain",
+          "stability",
+          "integral",
+          "closed-loop"
+        ],
+        "expanded": 2,
+        "context_words": 322,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "derivative"
+        ]
+      },
+      "expected_sections": [
+        "derivative"
+      ],
+      "only_section_aware": [
+        "controls:steady-state"
+      ],
+      "only_fixed_length": [
+        "controls:stability"
+      ]
+    },
+    {
+      "id": "q6",
+      "category": "ambiguous follow-up",
+      "question": "What about windup?",
+      "retrieval_query": "What does integral action do?\nFollow-up: What about windup?",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:integral:0",
+          "controls:steady-state:0",
+          "controls:derivative:0"
+        ],
+        "context_ids": [
+          "controls:integral:0",
+          "controls:steady-state:0",
+          "controls:derivative:0"
+        ],
+        "context_sections": [
+          "integral",
+          "steady-state",
+          "derivative"
+        ],
+        "expanded": 0,
+        "context_words": 178,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "integral"
+        ]
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:integral:1",
+          "controls:integral:0",
+          "controls:steady-state:0",
+          "controls:derivative:0"
+        ],
+        "context_ids": [
+          "controls:integral",
+          "controls:steady-state:0",
+          "controls:derivative:0"
+        ],
+        "context_sections": [
+          "integral",
+          "steady-state",
+          "derivative"
+        ],
+        "expanded": 1,
+        "context_words": 178,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "integral"
+        ]
+      },
+      "expected_sections": [
+        "integral"
+      ],
+      "only_section_aware": [],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q7",
+      "category": "ambiguous follow-up",
+      "question": "Does it guarantee stability?",
+      "retrieval_query": "What is negative feedback?\nFollow-up: Does it guarantee stability?",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:feedback:0",
+          "controls:integral:0",
+          "controls:open-loop:0",
+          "controls:stability:0",
+          "controls:closed-loop:0"
+        ],
+        "context_ids": [
+          "controls:feedback:0",
+          "controls:integral:0",
+          "controls:open-loop:0",
+          "controls:stability:0",
+          "controls:closed-loop:0"
+        ],
+        "context_sections": [
+          "feedback",
+          "integral",
+          "open-loop",
+          "stability",
+          "closed-loop"
+        ],
+        "expanded": 0,
+        "context_words": 362,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "feedback"
+        ],
+        "exception_in_context": true,
+        "exception_among_caveats": true
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [
+          "controls:feedback:1",
+          "controls:feedback:0",
+          "controls:integral:0",
+          "controls:open-loop:0",
+          "controls:stability:1"
+        ],
+        "context_ids": [
+          "controls:feedback",
+          "controls:integral",
+          "controls:open-loop:0",
+          "controls:stability"
+        ],
+        "context_sections": [
+          "feedback",
+          "integral",
+          "open-loop",
+          "stability"
+        ],
+        "expanded": 3,
+        "context_words": 302,
+        "budget_skips": [],
+        "matched_by_meaning_only": false,
+        "expected_sections_in_context": [
+          "feedback"
+        ],
+        "exception_in_context": true,
+        "exception_among_caveats": true
+      },
+      "expected_sections": [
+        "feedback"
+      ],
+      "only_section_aware": [
+        "controls:closed-loop"
+      ],
+      "only_fixed_length": []
+    },
+    {
+      "id": "q8",
+      "category": "absent topic",
+      "question": "Explain the Kalman filter",
+      "retrieval_query": "Explain the Kalman filter",
+      "section": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [],
+        "context_ids": [],
+        "context_sections": [],
+        "expanded": 0,
+        "context_words": 0,
+        "budget_skips": [],
+        "matched_by_meaning_only": false
+      },
+      "fixed": {
+        "search_used": "keyword",
+        "retrieved_chunk_ids": [],
+        "context_ids": [],
+        "context_sections": [],
+        "expanded": 0,
+        "context_words": 0,
+        "budget_skips": [],
+        "matched_by_meaning_only": false
+      },
+      "expected_status": "insufficient_evidence",
+      "only_section_aware": [],
+      "only_fixed_length": []
+    }
+  ]
+}

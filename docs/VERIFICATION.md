@@ -1,5 +1,14 @@
 # Verification record
 
+Study Companion's website was built and checked locally on 29 September 2026 from
+`demos/02-study-companion`: 78 backend tests and 31 frontend tests passed, with linting,
+type checking and the production build; the root suite passed 87 tests and 30/30 retrieval
+cases; and every page was driven in a headless browser with and without a model. Five live
+replies to the exception question were recorded and read, and all kept the exception.
+Campus Guide was re-run in full after its shared code moved to `rag_core/web` (101 backend
+tests, 12 frontend tests, lint, types and build passed). Nothing was deployed. See
+[the record](../demos/02-study-companion/WEB_RUN_RESULTS.md).
+
 Campus Desk's TypeScript migration was verified from `demos/01-campus-desk`:
 24 web tests, 7/7 web evaluation questions, type checking, linting and the production
 build passed. See [web run results](../demos/01-campus-desk/WEB_RUN_RESULTS.md).

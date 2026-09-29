@@ -1,0 +1,35 @@
+{
+  "name": "study-companion",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3001",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 3001",
+    "lint": "eslint app components lib web-tests next.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test web-tests/*.test.ts",
+    "format": "prettier --write app components lib web-tests next.config.ts",
+    "api": ".venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8001 --reload",
+    "test:api": ".venv/bin/python -m pytest backend/tests -q"
+  },
+  "dependencies": {
+    "lucide-react": "1.48.0",
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.6",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  }
+}

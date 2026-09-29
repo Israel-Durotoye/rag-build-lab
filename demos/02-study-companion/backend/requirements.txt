@@ -1,0 +1,32 @@
+# Study Companion Python backend. Install from demos/02-study-companion with:
+#   python -m pip install -e ../.. -r backend/requirements.txt
+# (-e ../.. installs the shared rag_core package from the repository root,
+# including rag_core.web: extraction, OCR, embeddings and hybrid retrieval.)
+#
+# Prefer published wheels over building from source: newer OpenCV and
+# onnxruntime releases dropped older macOS/Intel wheels, and pip would
+# otherwise try to compile OpenCV from its source tarball.
+--prefer-binary
+
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+python-multipart>=0.0.9,<1
+
+# Extraction: PDF text layer + page rendering, OCR, Word documents.
+pymupdf>=1.24,<2
+rapidocr>=3,<4
+onnxruntime>=1.19,<2
+python-docx>=1.1,<2
+pillow>=10,<13
+
+# Semantic retrieval: ONNX sentence embeddings (BAAI/bge-small-en-v1.5).
+fastembed>=0.5,<1
+numpy>=1.26
+
+# Any OpenAI-compatible chat API; .env.local loading.
+openai>=1.40,<4
+python-dotenv>=1,<2
+
+# Tests.
+pytest>=8,<10
+httpx>=0.27,<1

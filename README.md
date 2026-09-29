@@ -31,6 +31,32 @@ deployment instructions](demos/01-campus-desk/WEB_README.md). Each demo's
 frontend, backend, dependencies, and build configuration live inside that
 demo's own folder.
 
+## Study Companion website — Python backend + Next.js frontend
+
+The second demo, Study Companion, is for a student trying to understand a set
+of notes. They add their notes (or load the sample notes) and ask what they
+don't follow; each reply has an explanation, the exact sections behind it and
+the original text, with the notes' own caveats quoted beside it. Every set of
+notes is chunked two ways, section-aware and fixed-length, and the Compare page
+runs one question against both without declaring a winner. A small match can
+grow to its whole section within a word budget. The Practise page writes
+quizzes and flashcards from the notes and checks each item's quote against
+them. It is built like Campus Guide and shares its extraction, embedding and
+retrieval code through `rag_core/web`. From the repository root:
+
+```bash
+cd demos/02-study-companion
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ../.. -r backend/requirements.txt
+npm ci
+npm run api    # Python backend on :8001
+npm run dev    # frontend on :3001 (second terminal)
+```
+
+Without a model key it still reads, chunks and searches notes, and shows
+sentences copied from them. See [setup, architecture and deployment
+instructions](demos/02-study-companion/WEB_README.md).
+
 ## Python demos quick start
 
 Python 3.11 or newer and SQLite with FTS5 are required. Run commands from the repository root.
@@ -149,10 +175,11 @@ python scripts/evaluate_all.py
 - `rag_core/study.py`: Study Companion parent-section expansion, one follow-up and verbatim explanations.
 - `rag_core/repository.py`: read-only Git snapshot ingestion.
 - `rag_core/ui.py`: shared UI, with each demo independently configured.
+- `rag_core/web/`: what the websites' Python backends share: extraction (PDF, Word, text, OCR), embeddings, hybrid retrieval with a trace, citation checks, NDJSON helpers and test doubles. Needs the packages in a demo's `backend/requirements.txt`; nothing else in `rag_core` imports it.
 - `tests/`: core, security-boundary, repository and app smoke tests.
 
 ## Limits and next steps
 
-This is a runnable learning repository, not ten production services. Included evaluation sets are deliberately small. There is no production authentication, file-upload API, PDF parser, OCR engine, persisted embedding store, answer cache, rate limiting or deployment automation. Follow each demo's Codex brief to expand it after measuring the baseline. Keep generated answers and build results out of public posts until you have run them yourself.
+This is a runnable learning repository, not ten production services. Included evaluation sets are deliberately small. Outside the two websites (Campus Guide and Study Companion, which read uploaded PDF and Word files, run OCR and store embeddings per workspace) there is no file-upload API, PDF parser, OCR engine or persisted embedding store, and nowhere is there production authentication, an answer cache, rate limiting or deployment automation. Follow each demo's Codex brief to expand it after measuring the baseline. Keep generated answers and build results out of public posts until you have run them yourself.
 
 No software license has been chosen on your behalf. Add a license before inviting third-party reuse beyond ordinary repository viewing.
