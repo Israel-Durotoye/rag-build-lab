@@ -7,7 +7,10 @@ import gradio as gr
 from backend.app import API_VERSION, create_app
 
 
-api = create_app(preload=False, app_factory=gr.Server,
+# preload=True: the embedding and OCR models load in a background thread as
+# soon as the Space starts, so /api/status reports "ready" before the first
+# visitor and the first upload does not carry the model download.
+api = create_app(preload=True, app_factory=gr.Server,
                  route_prefix='/campus-api', public_prefix='/api')
 
 
