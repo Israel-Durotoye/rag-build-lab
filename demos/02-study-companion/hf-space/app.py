@@ -64,4 +64,8 @@ to the matching Next.js frontend.
 
 
 # Gradio owns the homepage and queue; FastAPI keeps every /api/* product route.
-demo.launch(_app=api, ssr_mode=False, theme=gr.themes.Soft(primary_hue='indigo'), css=CSS)
+# Gradio replaces the startup hook of an app it is handed with its own, built
+# from app_kwargs. Passing ours along is what makes the models preload and
+# idle workspaces get cleaned up here, as they are under uvicorn.
+demo.launch(_app=api, app_kwargs={'lifespan': api.router.lifespan_context}, ssr_mode=False,
+            theme=gr.themes.Soft(primary_hue='indigo'), css=CSS)
