@@ -280,14 +280,12 @@ All paths are relative to `demos/01-campus-desk`.
 | Path | Purpose |
 |---|---|
 | `backend/app.py` | FastAPI routes (documents, chat, retrieve, settings, profile), NDJSON streaming, startup preload and cleanup |
-| `backend/extraction.py` | PyMuPDF text blocks, RapidOCR for scans and images, python-docx |
+| `backend/extraction.py`, `ocr.py`, `embeddings.py`, `retrieval.py`, `documents.py` | Re-exports of `rag_core/web`, where this code now lives so that Study Companion uses the same copy: PyMuPDF text blocks, RapidOCR for scans and images, python-docx; the FastEmbed model; keyword, semantic and hybrid (RRF) retrieval with a full trace; limits and heading detection |
 | `backend/chunking.py` | Heading-aware, overlapping chunks with page or paragraph citations |
-| `backend/embeddings.py` | FastEmbed model, loaded once and shared |
 | `backend/ingest.py` | Upload pipeline and the per-document breakdown |
 | `backend/store.py` | Workspace storage: records, vectors, rag_core FTS5 index |
-| `backend/retrieval.py` | Keyword, semantic and hybrid (RRF) retrieval with a full trace |
 | `backend/augmentation.py` | Grounding rules, owner settings (validation and defaults), history and numbered passages |
-| `backend/generation.py` | Citation checks, follow-up rewriting, document overviews, the welcome profile |
+| `backend/generation.py` | Document overviews and the welcome profile; citation checks and follow-up rewriting come from `rag_core/web/answers.py` |
 | `backend/chat.py` | One chat turn through every layer, as a stream of events |
 | `backend/tests/` | Backend tests, including the seven fixed evaluation cases |
 | `components/rag-provider.tsx` | Shared state: documents, upload queue, welcome profile, chat turns and their traces |
@@ -303,8 +301,11 @@ All paths are relative to `demos/01-campus-desk`.
 | `hf-space/` | Hugging Face Space entrypoint, card, packages and deploy script for the backend |
 
 Shared, in the repository root: `rag_core/core.py` (FTS5 index with optional
-stemming and scored keyword matches) and `rag_core/providers.py`
-(`OpenAICompatible`: retries, fallbacks, streaming).
+stemming and scored keyword matches), `rag_core/providers.py`
+(`OpenAICompatible`: retries, fallbacks, streaming) and `rag_core/web/`
+(extraction, OCR, embeddings, retrieval, citation checks, NDJSON streaming and
+the test doubles, shared with Study Companion). The Space deploy script already
+uploads the whole of `rag_core`, so nothing changes there.
 
 ## Remaining limits
 

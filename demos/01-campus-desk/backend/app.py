@@ -21,8 +21,6 @@ characters the browser generates once and keeps.
 """
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
 import os
 import threading
@@ -34,9 +32,10 @@ from fastapi import FastAPI, File, Header, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from rag_core.providers import ProviderError
+from rag_core.web.http import failure, ndjson as stream_ndjson, read_json
 
 from .chat import run_turn
 from .augmentation import DEFAULTS, SettingsError, guide_settings, system_prompt, validate_settings
@@ -53,13 +52,8 @@ from .store import DOCUMENT_ID, DocumentStore, WorkspaceError, summary
 log = logging.getLogger('campus_guide')
 API_VERSION = 2
 API_VERSION_HEADER = 'X-Campus-API-Version'
-MAX_JSON_BYTES = 256 * 1024
 MAX_MESSAGE_CHARS = 4000
 UNSET = object()
-
-
-def failure(message: str, status: int) -> JSONResponse:
-    return JSONResponse({'error': message}, status_code=status)
 
 
 @dataclass
@@ -71,58 +65,8 @@ class Services:
     ocr: Callable[[], object | None]
 
 
-def ndjson(work: Callable[[Callable[[dict], None], Callable[[], bool]], None]) -> StreamingResponse:
-    """Run ``work(emit, cancelled)`` on a thread and stream what it emits as
-    newline-delimited JSON. A client disconnect sets ``cancelled``."""
-    loop = asyncio.get_running_loop()
-    queue: asyncio.Queue = asyncio.Queue()
-    stop = threading.Event()
-
-    def emit(event) -> None:
-        try:
-            loop.call_soon_threadsafe(queue.put_nowait, event)
-        except RuntimeError:
-            stop.set()  # the event loop is gone
-
-    def runner() -> None:
-        try:
-            work(emit, stop.is_set)
-        except (ExtractionError, DocumentError, WorkspaceError) as error:
-            emit({'type': 'error', 'error': str(error)})
-        except Exception:
-            log.exception('Streaming request failed')
-            emit({'type': 'error', 'error': 'Something went wrong on the server. Please try again.'})
-        finally:
-            emit(None)
-
-    async def stream():
-        threading.Thread(target=runner, daemon=True).start()
-        try:
-            while (event := await queue.get()) is not None:
-                yield json.dumps(event, ensure_ascii=False) + '\n'
-        finally:
-            stop.set()
-
-    return StreamingResponse(stream(), media_type='application/x-ndjson',
-                             headers={'X-Accel-Buffering': 'no', 'Cache-Control': 'no-store'})
-
-
-async def read_json(request: Request) -> dict | JSONResponse:
-    if not request.headers.get('content-type', '').lower().startswith('application/json'):
-        return failure('Send a JSON request.', 415)
-    size, parts = 0, []
-    async for part in request.stream():
-        size += len(part)
-        if size > MAX_JSON_BYTES:
-            return failure('Request is too large.', 413)
-        parts.append(part)
-    try:
-        body = json.loads(b''.join(parts) or b'null')
-    except ValueError:
-        return failure('Send a valid JSON object.', 400)
-    if not isinstance(body, dict):
-        return failure('Send a valid JSON object.', 400)
-    return body
+def ndjson(work: Callable[[Callable[[dict], None], Callable[[], bool]], None]):
+    return stream_ndjson(work, expected=(ExtractionError, DocumentError, WorkspaceError), log=log)
 
 
 def create_app(settings: Settings | None = None, *, model=UNSET, embedder=UNSET, ocr=UNSET,

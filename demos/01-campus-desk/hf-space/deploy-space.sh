@@ -29,7 +29,8 @@ cleanup() { rm -rf "$STAGE"; }
 trap cleanup EXIT
 
 # Only what the Space runtime needs: shared core, backend and packaging.
-rsync -a --exclude '__pycache__' --exclude '*.pyc' "$ROOT/rag_core" "$STAGE/"
+# rag_core/web/testing.py holds test doubles; it is not needed at run time.
+rsync -a --exclude '__pycache__' --exclude '*.pyc' --exclude 'testing.py' "$ROOT/rag_core" "$STAGE/"
 rsync -a --exclude '__pycache__' --exclude '*.pyc' --exclude 'tests' "$DEMO/backend" "$STAGE/"
 cp "$ROOT/pyproject.toml" "$HERE/app.py" "$HERE/README.md" "$HERE/packages.txt" "$HERE/.dockerignore" "$STAGE/"
 cp "$DEMO/backend/requirements.txt" "$STAGE/requirements.txt"
