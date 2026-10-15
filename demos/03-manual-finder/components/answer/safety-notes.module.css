@@ -1,0 +1,66 @@
+/* The manual's warnings: pressed in, with a warning edge. The colour only
+   marks the edge and icon; the words keep full contrast. */
+
+.notes {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow:
+    var(--press-sm),
+    inset 3px 0 0 var(--warn);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.head > svg {
+  flex: none;
+  color: var(--warn);
+}
+
+.title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+
+.sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.only {
+  flex: none;
+}
+
+.list blockquote {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+
+.list blockquote::before {
+  content: "“";
+}
+
+.list blockquote::after {
+  content: "”";
+}

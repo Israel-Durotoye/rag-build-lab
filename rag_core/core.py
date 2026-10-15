@@ -39,7 +39,10 @@ def chunk_document(doc: dict, mode: str = 'section', size: int = 120, min_tail: 
 
     A section's last window can be a few words long. With ``min_tail``, a last
     window shorter than that joins the window before it instead of becoming a
-    chunk of its own."""
+    chunk of its own.
+
+    A section may carry its own ``metadata`` (for example the device models a
+    passage applies to); it is merged over the document's."""
     if mode not in {'section', 'fixed'} or size < 1 or not 0 <= min_tail <= size:
         raise ValueError('Invalid chunk mode or size')
     result = []
@@ -52,8 +55,8 @@ def chunk_document(doc: dict, mode: str = 'section', size: int = 120, min_tail: 
         for i, text in enumerate(pieces):
             result.append(Chunk(f"{doc['id']}:{section['id']}:{i}", doc['id'], section['title'], text,
                                 section.get('location', section['id']),
-                                {**doc.get('metadata', {}), 'section': section['id'], 'version': doc.get('version', '1'),
-                                 'content_hash': sha256(text.encode()).hexdigest()}))
+                                {**doc.get('metadata', {}), **section.get('metadata', {}), 'section': section['id'],
+                                 'version': doc.get('version', '1'), 'content_hash': sha256(text.encode()).hexdigest()}))
     return result
 
 
@@ -132,6 +135,10 @@ class Index:
                 start = date.fromisoformat(c.metadata['effective_from'])
                 end = date.fromisoformat(c.metadata['effective_to'])
                 if not start <= day < end: return False
+            elif isinstance(c.metadata.get(key), list) and not isinstance(value, list):
+                # A passage that applies to several values (e.g. device models)
+                # matches a filter for any one of them.
+                if value not in c.metadata[key]: return False
             elif c.metadata.get(key) != value:
                 return False
         return True
@@ -152,10 +159,13 @@ class Index:
         return None
 
     @synchronized
-    def keyword_matches(self, question, limit=20, filters=None, tenants=None):
+    def keyword_matches(self, question, limit=20, filters=None, tenants=None, ids=None):
         """BM25-ranked keyword matches with their scores (higher is better) and
-        the query terms each chunk matched, for explaining retrieval."""
-        allowed = {c.id: c for c in self.chunks(filters, tenants)}
+        the query terms each chunk matched, for explaining retrieval.
+
+        ``ids``, when given, limits the matches to those chunk IDs. It is
+        applied before ``limit``, so chunks outside it never use up places."""
+        allowed = {c.id: c for c in self.chunks(filters, tenants) if ids is None or c.id in ids}
         terms = list(dict.fromkeys(tokens(question)))[:64]
         if not terms or not allowed:
             return []

@@ -1,0 +1,643 @@
+{
+  "about": "The models of the sample library, named the way the source documentation names them. 'outside' lists products the sources also mention but the library does not cover: a passage that names only those is left out, so it can never pass for a shared passage. 'overrides' correct tags the matching rules get wrong, each with its reason.",
+  "models": [
+    {
+      "id": "rpi-2b",
+      "name": "Raspberry Pi 2 Model B",
+      "short": "2B",
+      "family": "rpi-2",
+      "aliases": [
+        "Raspberry Pi 2 Model B",
+        "Raspberry Pi 2B",
+        "Raspberry Pi 2 B",
+        "Pi 2 Model B",
+        "Pi 2B",
+        "RPi 2B",
+        "2 Model B",
+        "2B"
+      ],
+      "revisions": [
+        {
+          "id": "v1-1",
+          "label": "v1.1",
+          "aliases": []
+        },
+        {
+          "id": "v1-2",
+          "label": "v1.2",
+          "aliases": []
+        }
+      ]
+    },
+    {
+      "id": "rpi-3b",
+      "name": "Raspberry Pi 3 Model B",
+      "short": "3B",
+      "family": "rpi-3",
+      "aliases": [
+        "Raspberry Pi 3 Model B",
+        "Raspberry Pi 3B",
+        "Raspberry Pi 3 B",
+        "Pi 3 Model B",
+        "Pi 3B",
+        "RPi 3B",
+        "3 Model B",
+        "3B"
+      ],
+      "revisions": [
+        {
+          "id": "bcm2837",
+          "label": "BCM2837 (original)",
+          "aliases": []
+        },
+        {
+          "id": "bcm2837b0",
+          "label": "BCM2837B0 (metal lid)",
+          "aliases": [
+            "BCM2837B0",
+            "metal lid"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rpi-3b-plus",
+      "name": "Raspberry Pi 3 Model B+",
+      "short": "3B+",
+      "family": "rpi-3",
+      "aliases": [
+        "Raspberry Pi 3 Model B+",
+        "Raspberry Pi 3B+",
+        "Raspberry Pi 3 B+",
+        "Pi 3 Model B+",
+        "Pi 3B+",
+        "RPi 3B+",
+        "3 Model B+",
+        "3B+"
+      ],
+      "revisions": []
+    },
+    {
+      "id": "uno-r3",
+      "name": "Arduino UNO R3",
+      "short": "UNO R3",
+      "family": "uno",
+      "aliases": [
+        "Arduino UNO R3",
+        "UNO R3",
+        "Arduino UNO Rev3",
+        "UNO Rev3",
+        "UNO Rev 3",
+        "Arduino UNO (Rev3)",
+        "UNO (Rev3 or earlier)",
+        "UNO Rev3 or earlier"
+      ],
+      "revisions": []
+    },
+    {
+      "id": "uno-r4-minima",
+      "name": "Arduino UNO R4 Minima",
+      "short": "R4 Minima",
+      "family": "uno",
+      "aliases": [
+        "Arduino UNO R4 Minima",
+        "UNO R4 Minima",
+        "R4 Minima"
+      ],
+      "revisions": []
+    },
+    {
+      "id": "uno-r4-wifi",
+      "name": "Arduino UNO R4 WiFi",
+      "short": "R4 WiFi",
+      "family": "uno",
+      "aliases": [
+        "Arduino UNO R4 WiFi",
+        "UNO R4 WiFi",
+        "UNO R4 Wi-Fi",
+        "R4 WiFi",
+        "R4 Wi-Fi"
+      ],
+      "revisions": []
+    }
+  ],
+  "families": [
+    {
+      "id": "rpi-2",
+      "name": "Raspberry Pi 2",
+      "aliases": [
+        "Raspberry Pi 2",
+        "Pi 2",
+        "RPi 2"
+      ],
+      "members": [
+        "rpi-2b"
+      ]
+    },
+    {
+      "id": "rpi-3",
+      "name": "Raspberry Pi 3",
+      "aliases": [
+        "Raspberry Pi 3",
+        "Pi 3",
+        "RPi 3"
+      ],
+      "members": [
+        "rpi-3b",
+        "rpi-3b-plus"
+      ]
+    },
+    {
+      "id": "uno",
+      "name": "Arduino UNO family",
+      "aliases": [],
+      "members": [
+        "uno-r3",
+        "uno-r4-minima",
+        "uno-r4-wifi"
+      ]
+    },
+    {
+      "id": "uno-r4",
+      "name": "Arduino UNO R4",
+      "aliases": [
+        "Arduino UNO R4",
+        "UNO R4"
+      ],
+      "members": [
+        "uno-r4-minima",
+        "uno-r4-wifi"
+      ]
+    }
+  ],
+  "outside": [
+    "Raspberry Pi 1",
+    "Raspberry Pi 1 Model A",
+    "Raspberry Pi 1 Model B",
+    "Raspberry Pi 1 Model A+",
+    "Raspberry Pi 1 Model B+",
+    "Raspberry Pi Model A",
+    "Raspberry Pi Model B",
+    "Raspberry Pi Model A+",
+    "Raspberry Pi Model B+",
+    "Raspberry Pi A+",
+    "Raspberry Pi B+",
+    "Model A",
+    "Model B",
+    "Model A+",
+    "Model B+",
+    "1A",
+    "1B",
+    "1A+",
+    "1B+",
+    "A+",
+    "B+",
+    "Raspberry Pi 3 Model A+",
+    "Raspberry Pi 3A+",
+    "Pi 3A+",
+    "3 Model A+",
+    "3A+",
+    "Raspberry Pi 4",
+    "Raspberry Pi 4 Model B",
+    "Raspberry Pi 4B",
+    "Pi 4",
+    "4B",
+    "4-series",
+    "Raspberry Pi 400",
+    "Pi 400",
+    "Raspberry Pi 5",
+    "Pi 5",
+    "5-series",
+    "Raspberry Pi 500",
+    "Raspberry Pi 500+",
+    "Pi 500",
+    "Raspberry Pi Zero",
+    "Raspberry Pi Zero W",
+    "Raspberry Pi Zero 2 W",
+    "Pi Zero",
+    "Zero W",
+    "Zero WH",
+    "Zero 2 W",
+    "Zero series",
+    "Compute Module",
+    "Compute Module 1",
+    "Compute Module 3",
+    "Compute Module 3+",
+    "Compute Module 4",
+    "Compute Module 4S",
+    "Compute Module 5",
+    "Compute Module Lite",
+    "CM1",
+    "CM3",
+    "CM3+",
+    "CM4",
+    "CM4S",
+    "CM5",
+    "Raspberry Pi Pico",
+    "Arduino Mega",
+    "Mega 2560",
+    "Mega",
+    "Arduino Nano",
+    "Nano",
+    "Nano Every",
+    "Nano 33 BLE",
+    "Nano 33 IoT",
+    "Nano ESP32",
+    "Arduino Leonardo",
+    "Leonardo",
+    "UNO WiFi Rev2",
+    "Arduino UNO WiFi Rev2",
+    "UNO Mini",
+    "UNO Mini Limited Edition",
+    "UNO Q",
+    "Arduino UNO Q",
+    "GIGA R1 WiFi",
+    "GIGA R1",
+    "Portenta",
+    "Portenta H7",
+    "Nicla",
+    "MKR",
+    "Arduino Due",
+    "Arduino Micro",
+    "Arduino Zero",
+    "Arduino UNO R3 SMD",
+    "UNO R3 SMD",
+    "UNO SMD",
+    "Arduino UNO Rev3 with Long Pins",
+    "Arduino UNO WiFi",
+    "UNO WiFi"
+  ],
+  "overrides": [
+    {
+      "document": "rpi-hardware",
+      "heading": "GPIO boot mode",
+      "replace": "shared",
+      "models": [
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "reason": "The section's own note: GPIO boot mode is only available on the Raspberry Pi 3A+, 3B, 3B+, Compute Module 3 and 3+. Its unmarked passages are about those boards, not the 2B."
+    },
+    {
+      "document": "rpi-hardware",
+      "section": "raspberry-pi-3b-and-compute-module-3",
+      "replace": "all",
+      "models": [
+        "rpi-3b"
+      ],
+      "revisions": {
+        "rpi-3b": [
+          "bcm2837"
+        ]
+      },
+      "reason": "The heading says only '3B', but the next table is headed 'Later Raspberry Pi 3B (BCM2837B0 with the metal lid)', so this table is for the original BCM2837 board."
+    },
+    {
+      "document": "rpi-hardware",
+      "heading": "Network booting",
+      "replace": "shared",
+      "models": [
+        "rpi-2b",
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "revisions": {
+        "rpi-2b": [
+          "v1-2"
+        ]
+      },
+      "reason": "The section opens: 'This section describes how network booting works on Raspberry Pi 3B, 3B+ and 2B v1.2.'"
+    },
+    {
+      "document": "rpi-hardware",
+      "heading": "Known problems",
+      "replace": "all",
+      "models": [
+        "rpi-2b",
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "revisions": {
+        "rpi-2b": [
+          "v1-2"
+        ]
+      },
+      "reason": "Each known problem is a boot-ROM limitation of the network-boot boards; its note names the model where it was fixed ('Fixed in Raspberry Pi 3 Model B+'). The problem and the fix concern every one of them, so tagging the note with the 3B+ alone would hide the problem from the boards that have it."
+    },
+    {
+      "document": "arduino-help-center",
+      "heading": "dfu-util errors when uploading (exit status 74)",
+      "replace": "shared",
+      "models": [
+        "uno-r4-minima"
+      ],
+      "reason": "The article opens: 'Many Arduino boards use the dfu-util utility to upload sketches to the board. Some of these include: Arduino UNO R4 Minima, Arduino GIGA R1 WiFi.' Of the library's boards, only the UNO R4 Minima uploads with dfu-util."
+    },
+    {
+      "document": "rpi-hardware",
+      "section": "raspberry-pi-2b-3a-3b-cm3-cm3",
+      "replace": "all",
+      "models": [
+        "rpi-2b",
+        "rpi-3b"
+      ],
+      "revisions": {
+        "rpi-2b": [
+          "v1-2"
+        ]
+      },
+      "reason": "The section opens: 'On Raspberry Pi 2B v1.2 and v1.3, 3A+, 3B and Compute Module 3 and 3+, you must first enable USB host boot mode.' Its heading names the 2B without that revision, and the OTP procedure only works on BCM2837 boards (bootmodes.adoc: 'Raspberry Pi 2B version 1.2, Raspberry Pi 3B, and Raspberry Pi 3B+')."
+    },
+    {
+      "document": "rpi-hardware",
+      "section": "enable-usb-host-boot-mode-with-otp",
+      "replace": "all",
+      "models": [
+        "rpi-2b",
+        "rpi-3b"
+      ],
+      "revisions": {
+        "rpi-2b": [
+          "v1-2"
+        ]
+      },
+      "reason": "Steps of the same OTP procedure for the 2B v1.2 and the 3B; a 2B v1.1 (BCM2836) has no USB host boot."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "typical-power-requirements-u21"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "The command belongs to the sentence before it ('To check the current status of power output to the USB ports on your Raspberry Pi 5, run:'), which names only the Pi 5. usb_max_current_enable is a Pi 5 setting."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "power-supplies-and-raspberry-pi-os-u01",
+        "power-supplies-and-raspberry-pi-os-u02",
+        "power-supplies-and-raspberry-pi-os-u03",
+        "power-supplies-and-raspberry-pi-os-u04",
+        "power-supplies-and-raspberry-pi-os-u05"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "Power information passed by the EEPROM bootloader and read from the PMIC (USB-PD data, the Pi 5 current limiter, pmic_read_adc). These belong to the Raspberry Pi 4 and 5 generation; the micro USB 2B, 3B and 3B+ have neither."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "frequency-management-and-thermal-control-u04"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "The passage is about the Raspberry Pi 4 Model B ('There is currently no soft limit defined'); the 3B+ is named only as a comparison, so it must not become a 3B+ fact."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "bootcode-bin-uart-enable-u02"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "A pointer to UART settings for the EEPROM bootloader, which only the Raspberry Pi 4 and later have; the section itself is for models before the Pi 4."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "power-supply-warnings-u01",
+        "bootcode-bin-uart-enable-u01",
+        "bootcode-bin-uart-enable-u07",
+        "usb-mass-storage-boot-u03",
+        "best-practices-for-revision-code-usage-u04"
+      ],
+      "replace": "all",
+      "models": null,
+      "reason": "The passage names another product only as a cut-off or an example ('since the Raspberry Pi B+', 'prior to Raspberry Pi 4', 'Models prior to Raspberry Pi 4B'); it applies to every board in the library."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "boot-flow-u01"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "reason": "Explains what SD0 and SD1 are in GPIO boot mode, which applies to the 3B and 3B+; the Compute Module sentences are asides."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "gpio-boot-mode-u05"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-3b"
+      ],
+      "revisions": {
+        "rpi-3b": [
+          "bcm2837"
+        ]
+      },
+      "reason": "Its bank numbers (bank 1 is GPIOs 22-26, bank 2 is 39-43) are the original BCM2837's table. The table for the 3B with the BCM2837B0, which the 3B+ shares, starts at GPIO 20 and 37."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "power-supply-u01",
+        "raspberry-pi-revision-codes-u05",
+        "new-style-revision-codes-u01",
+        "new-style-revision-codes-u12",
+        "special-bootcode-bin-only-boot-mode-2-u01"
+      ],
+      "replace": "all",
+      "models": null,
+      "reason": "General statements that apply to every board in the library ('All models up to the Raspberry Pi 3 require a micro USB power connector'; the revision-code format; the bootcode.bin-only mode that BCM2836 boards rely on). A board named in them is an example or a starting point, not the passage's scope."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "usb-mass-storage-boot-u01",
+        "boot-from-usb-mass-storage-u03"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-2b",
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "revisions": {
+        "rpi-2b": [
+          "v1-2"
+        ]
+      },
+      "reason": "USB mass storage boot is available 'since Raspberry Pi 2B (version 1.2)': on the 2B v1.2, the 3B and the 3B+, never on the 2B v1.1 (BCM2836)."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "typical-power-requirements-u36"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-2b",
+        "rpi-3b"
+      ],
+      "reason": "The note gives the conditions for every measurement in the table above it, whose columns include the 2B and 3B."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "typical-power-requirements-u35"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-3b"
+      ],
+      "reason": "The 'Halt current' row has values only under the 3B (and boards outside the library); its 2B cell is empty."
+    },
+    {
+      "document": "rpi-hardware",
+      "units": [
+        "later-raspberry-pi-3b-bcm2837b0-with-the-metal-l-u08"
+      ],
+      "replace": "all",
+      "models": [
+        "rpi-3b",
+        "rpi-3b-plus"
+      ],
+      "reason": "The note on the order boot modes are tried in describes GPIO boot mode in general, so it applies to both 3B revisions, not only the metal-lid board whose table it follows."
+    },
+    {
+      "document": "rpi-configuration",
+      "units": [
+        "check-led-warning-codes-u17"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "RP1 is the I/O controller built into the Raspberry Pi 5 and Compute Module 5, so 'RP1 not found' cannot occur on the 2B, 3B or 3B+. The row names no model, so without this it would pass for a shared code."
+    },
+    {
+      "document": "rpi-configuration",
+      "units": [
+        "check-led-warning-codes-u08",
+        "check-led-warning-codes-u16"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "SD card overcurrent detection and secure-boot configuration are checks of the EEPROM bootloader (Raspberry Pi 4 and later). The 2B, 3B and 3B+ have none, so these codes cannot occur on them; unlike the other EEPROM rows, these lack the '(Raspberry Pi 4 and 5)' label."
+    },
+    {
+      "document": "rpi-config-txt",
+      "units": [
+        "model-filters-u23"
+      ],
+      "replace": "all",
+      "models": null,
+      "reason": "General advice about the [all] filter; it names the Raspberry Pi 2 only because the example above it uses [pi2]."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "uno-r4-boards-u03"
+      ],
+      "replace": "all",
+      "models": [
+        "uno-r4-wifi"
+      ],
+      "reason": "The UNO R4 WiFi's own card. 'Arduino UNO R4 Boards' in it is the name of the board package both R4 boards share, not the board the card describes."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "uno-r4-boards-u04"
+      ],
+      "replace": "all",
+      "models": [
+        "uno-r4-minima"
+      ],
+      "reason": "The UNO R4 Minima's own card; 'Arduino UNO R4 Boards' is the shared board package's name."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "uno-r3-inc-older-revisions-smd-u08",
+        "uno-r3-inc-older-revisions-smd-u09",
+        "uno-r3-inc-older-revisions-smd-u11",
+        "uno-r3-inc-older-revisions-smd-u12",
+        "uno-r3-inc-older-revisions-smd-u13",
+        "uno-r3-inc-older-revisions-smd-u14",
+        "uno-r3-inc-older-revisions-smd-u15"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "Cards for other products in the UNO line (the UNO R3 SMD, the UNO R3 with long pins, the UNO Rev2 and the original UNO), which the library does not cover."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "5-check-for-additional-system-information-u12"
+      ],
+      "replace": "all",
+      "models": [
+        "uno-r3"
+      ],
+      "reason": "The continuation of the bullet 'If you're using an UNO (Rev3 or earlier) or Mega board...'; the R4 boards have no USB-to-serial chip to flash."
+    },
+    {
+      "document": "arduino-help-center",
+      "section": "3-try-a-bootloader-reset-if-your-board-supports-",
+      "replace": "shared",
+      "models": [
+        "uno-r4-minima",
+        "uno-r4-wifi"
+      ],
+      "reason": "The double-press bootloader reset is for boards that support it. Of the library's boards, the R4 Minima and R4 WiFi datasheets document it; the UNO R3 has no such mode."
+    },
+    {
+      "document": "arduino-help-center",
+      "section": "bootloader-mode-double-press",
+      "replace": "shared",
+      "models": [
+        "uno-r4-minima",
+        "uno-r4-wifi"
+      ],
+      "reason": "'This procedure' is the double-press bootloader mode, documented for the R4 Minima and R4 WiFi but not the UNO R3."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "my-board-pwr-led-does-not-turn-on-u03"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "About the Diecimila and older boards (NG) and their power-select jumper, which no board in the library has."
+    },
+    {
+      "document": "arduino-help-center",
+      "units": [
+        "3-battery-socket-li-po-u02"
+      ],
+      "replace": "all",
+      "models": [],
+      "reason": "Li-Po battery socket specifications for boards that have one (the section's first sentence names the MKR family); no UNO in the library has a battery socket."
+    },
+    {
+      "document": "arduino-help-center",
+      "section": "uno-wifi-uno-wifi-rev2",
+      "replace": "all",
+      "models": [],
+      "reason": "About the retired Arduino UNO WiFi and UNO WiFi Rev2, which aren't in the library. It names the UNO R3 and the UNO R4 WiFi only to compare ('A version of the UNO R3 with an ESP8266 Wi-Fi module'), so none of its passages is about them."
+    },
+    {
+      "document": "arduino-help-center",
+      "section": "arduino-compatible-uno-boards-by-other-manufactu",
+      "replace": "all",
+      "models": [],
+      "reason": "About other manufacturers' boards with 'UNO' in their name ('They may use USB-to-serial chips that require additional drivers'), not about the Arduino boards in the library."
+    }
+  ]
+}

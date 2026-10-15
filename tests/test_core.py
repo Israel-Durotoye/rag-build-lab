@@ -50,9 +50,15 @@ def test_fts_query_is_escaped():
 
 def test_manual_filter_applies_before_context():
     p=make(3)
-    result=p.ask('E17',{'device':'M2'})
-    assert result['sources'];assert all(s['metadata']['device']=='M2' for s in result['sources'])
-    assert p.ask('E17')['status']=='clarification'
+    # The same port means different pins on two look-alike boards; each sees only its own row.
+    for device,row in (('uno-r4-minima','D5 | P102'),('uno-r4-wifi','D13 | P102')):
+        result=p.ask('Which header pin is RA4M1 port P102?',{'device':device})
+        assert result['sources'];assert all(device in s['metadata']['device'] for s in result['sources'])
+        assert row in result['sources'][0]['text']
+    # GPIO 22 is SD0 on the original 3B only; the 3B+ sees the NAND row and never the SD0 one.
+    plus=p.ask('GPIO boot mode Bank 1 22 boot type',{'device':'rpi-3b-plus'})
+    assert not any('22 | 39 | SD0' in s['text'] for s in plus['sources'])
+    assert p.ask('Which header pin is port P102?')['status']=='clarification'
 
 
 def test_policy_boundary_gap_overlap():
@@ -156,6 +162,24 @@ def test_agent_budget_invalid_tools_and_repetition():
     r=bounded_search(p,'inspection',planner=lambda *a:{'tool':'search','query':'inspection'})
     assert r['stop_reason']=='repeated_query'
     with pytest.raises(ValueError):bounded_search(p,'inspection',budget=4)
+
+
+def test_section_metadata_is_merged_and_list_values_filter_by_membership():
+    doc={'id':'manual','version':'7','metadata':{'device':['a','b','c'],'source':'x'},'sections':[
+        {'id':'shared','title':'Shared','text':'Clean the vents monthly.'},
+        {'id':'only-b','title':'B only','text':'Hold the button for five seconds.','metadata':{'device':['b']}},
+        {'id':'a-and-c','title':'A and C','text':'Hold the button for two seconds.','metadata':{'device':['a','c']}}]}
+    chunks={c.id:c for c in chunk_document(doc)}
+    assert chunks['manual:only-b:0'].metadata=={'device':['b'],'source':'x','section':'only-b','version':'7',
+                                                 'content_hash':chunks['manual:only-b:0'].metadata['content_hash']}
+    assert chunks['manual:shared:0'].metadata['device']==['a','b','c']
+    index=Index();index.replace([doc])
+    assert [c.id for c in index.chunks({'device':'b'})]==['manual:only-b:0','manual:shared:0']
+    assert [c.id for c in index.chunks({'device':'c'})]==['manual:a-and-c:0','manual:shared:0']
+    assert index.chunks({'device':'d'})==[]
+    assert [c.id for c in index.search('hold button',filters={'device':'a'})]==['manual:a-and-c:0']
+    # A list-valued filter still means equality, as before.
+    assert [c.id for c in index.chunks({'device':['b']})]==['manual:only-b:0']
 
 
 def test_a_short_last_window_can_join_the_one_before():

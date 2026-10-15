@@ -1,0 +1,212 @@
+/* Settings: raised panels of controls pressed out of the same base colour.
+   Every colour, shadow and radius comes from the tokens in app/globals.css. */
+
+.form {
+  display: grid;
+  gap: 20px;
+}
+.section {
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  min-width: 0;
+}
+.head {
+  display: grid;
+  gap: 4px;
+}
+.group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.labelRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.counter {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A segmented control that fills its panel, so three options fit at 390 px.
+   Scoped under .section so it outranks the global .seg. */
+.section .fullSeg {
+  display: flex;
+  width: 100%;
+}
+.segButton {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.segIcon {
+  flex: none;
+}
+
+.styleBox {
+  display: grid;
+  gap: 8px;
+}
+.styleLines {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+  list-style: disc;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.group .area {
+  align-items: stretch;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.reason {
+  font-size: 0.84rem;
+  color: var(--warn);
+}
+
+/* ------------------------------------------------------------ sliders */
+
+.range {
+  display: grid;
+  gap: 10px;
+}
+.value {
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.labelRow .number {
+  width: 116px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+}
+.labelRow .number input {
+  width: 100%;
+  padding: 6px 0;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--accent);
+  text-align: right;
+}
+.invalid {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--bad);
+}
+
+/* ------------------------------------------------------------ save row */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+/* The global .btn.quiet outranks .btn:disabled; a disabled quiet button
+   must still look unavailable. */
+.actions .quietButton:disabled {
+  color: var(--faint);
+  box-shadow: none;
+}
+.status {
+  flex: 1 1 200px;
+  min-height: 1.5em;
+  font-size: 0.9rem;
+}
+.ok {
+  color: var(--ok);
+  font-weight: 650;
+}
+.bad {
+  color: var(--bad);
+  font-weight: 650;
+}
+
+/* ------------------------------------------------------------ policy */
+
+.policyHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.lock {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  color: var(--accent);
+}
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.locked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  color: var(--ink);
+  font-weight: 650;
+}
+.policyText {
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------ fixed text */
+
+.pre {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .segIcon {
+    display: none;
+  }
+  .fullSeg .segButton {
+    padding: 0 10px;
+  }
+}

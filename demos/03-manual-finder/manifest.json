@@ -1,9 +1,23 @@
 {
-  "provenance": "Original synthetic fixture created for RAG Build Lab. No university, company or paper endorsement.",
-  "redistribution": "Included for this repository demonstration.",
+  "provenance": "Real manufacturer documentation: the Raspberry Pi documentation (Raspberry Pi Ltd) and the Arduino documentation and Help Center (Arduino), fetched at pinned commits by library/fetch_sources.py and split into units by library/build_corpus.py. Nothing in the library is written for this repository.",
+  "licence": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). The adapted excerpts in corpus.json are released under the same licence; see library/NOTICE.md for credit, changes and the disclaimer.",
+  "retrieved": "2026-10-15",
+  "sources": [
+    {"repository": "https://github.com/raspberrypi/documentation", "commit": "ddea98e98dafe9419feb4fd82710c2fbdef7dc44", "copyright": "© 2012-2026 Raspberry Pi Ltd"},
+    {"repository": "https://github.com/arduino/docs-content", "commit": "fcf130898e2ff105e96e0795ba561077c16efb44", "copyright": "© Arduino"},
+    {"repository": "https://github.com/arduino/help-center-content", "commit": "2303fc899609b273d0748687a1798072b3e104a9", "copyright": "© Arduino"}
+  ],
+  "models": ["rpi-2b", "rpi-3b", "rpi-3b-plus", "uno-r3", "uno-r4-minima", "uno-r4-wifi"],
   "documents": [
-    "m1",
-    "m2",
-    "m3"
-  ]
+    "rpi-hardware",
+    "rpi-configuration",
+    "rpi-config-txt",
+    "uno-r3-datasheet",
+    "uno-r4-minima-datasheet",
+    "uno-r4-wifi-datasheet",
+    "uno-r4-minima-manual",
+    "uno-r4-wifi-manual",
+    "arduino-help-center"
+  ],
+  "redistribution": "Permitted by CC BY-SA 4.0 with attribution, a note of changes and the same licence for adaptations. No trademark rights are granted."
 }

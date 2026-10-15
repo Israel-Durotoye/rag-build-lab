@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import io
 import re
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import PurePath
 from typing import Iterator
@@ -36,6 +37,15 @@ PAGE_NUMBER = re.compile(r'^\s*(page\s+)?(\d{1,4}|[ivxlc]{1,6})\s*$', re.I)
 # Symbol-font bullets (Wingdings etc.) land in the Unicode private use area.
 PRIVATE_USE = re.compile(r'[-]')
 SUPPORTED = {'.pdf': 'pdf', '.docx': 'word', '.txt': 'text', '.md': 'text'}
+# Reading stops at the per-document character limit (and a PDF at this many
+# pages), marking the result truncated: a small PDF can repeat one large
+# content stream on every page.
+MAX_PDF_PAGES = 2000
+# A Word file is a zip that python-docx unpacks whole into memory, so its
+# directory is checked first.
+DOCX_MAX_EXPANDED = 100 * 1024 * 1024
+DOCX_MAX_XML = 25 * 1024 * 1024
+DOCX_MAX_PARTS = 5000
 
 
 class ExtractionError(ValueError):
@@ -176,7 +186,12 @@ def _pdf(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dict
         per_page: dict[int, list[Block]] = {}
         methods: dict[int, str] = {}
         jobs: list[tuple[int, str]] = []
+        characters, last = 0, 0
         for number, page in enumerate(doc, 1):
+            if number > MAX_PDF_PAGES or characters >= LIMITS['characters_per_document']:
+                result.truncated = True
+                break
+            last = number
             yield _progress('text', number, total)
             blocks = [Block(b[4].strip(), number) for b in page.get_text('blocks', sort=True)
                       if b[6] == 0 and b[4].strip()]
@@ -185,6 +200,7 @@ def _pdf(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dict
                 blocks.pop()
             while blocks and PAGE_NUMBER.match(blocks[0].text):
                 blocks.pop(0)
+            characters += sum(len(b.text) for b in blocks)
             if len(_compact(''.join(b.text for b in blocks))) < TEXT_LAYER_THRESHOLD:
                 jobs.append((number, 'scan'))
                 methods[number] = 'empty'
@@ -195,7 +211,7 @@ def _pdf(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dict
                     jobs.append((number, 'images'))
 
         targets = jobs[:OCR_LIMIT]
-        result.truncated = len(jobs) > OCR_LIMIT
+        result.truncated = result.truncated or len(jobs) > OCR_LIMIT
         if targets and ocr is None:
             result.ocr_failed = True
             targets = []
@@ -224,23 +240,41 @@ def _pdf(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dict
         raise ExtractionError(
             'This PDF has no text layer and OCR could not run on this server.' if result.ocr_failed
             else 'No readable text was found in this PDF.')
-    for number in range(1, total + 1):
+    for number in range(1, last + 1):
         blocks = per_page.get(number, [])
         result.blocks.extend(blocks)
         result.pages.append({'page': number, 'chars': sum(len(b.text) for b in blocks), 'method': methods[number]})
+
+
+def _check_docx(data: bytes) -> None:
+    """Refuse a Word file whose parts would unpack to more than the limits."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            parts = archive.infolist()
+    except (zipfile.BadZipFile, ValueError):
+        raise ExtractionError('This Word file could not be opened. Save it again as .docx and retry.') from None
+    xml = sum(p.file_size for p in parts if p.filename.endswith(('.xml', '.rels')))
+    if (len(parts) > DOCX_MAX_PARTS or sum(p.file_size for p in parts) > DOCX_MAX_EXPANDED
+            or xml > DOCX_MAX_XML):
+        raise ExtractionError('This Word file unpacks to more than can be read here. Save a smaller copy, '
+                              'or export it as PDF, and try again.')
 
 
 def _docx(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dict]:
     import docx
     from docx.table import Table
 
+    _check_docx(data)
     try:
         document = docx.Document(io.BytesIO(data))
     except Exception:
         raise ExtractionError('This Word file could not be opened. Save it again as .docx and retry.') from None
 
-    para = 0
+    para, characters = 0, 0
     for block in document.iter_inner_content():
+        if characters >= LIMITS['characters_per_document']:
+            result.truncated = True
+            break
         if isinstance(block, Table):
             for row in block.rows:
                 # Merged cells repeat their text in every spanned cell.
@@ -248,6 +282,7 @@ def _docx(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dic
                 if cells:
                     para += 1
                     result.blocks.append(Block(' | '.join(cells), para=para, heading=False))
+                    characters += len(result.blocks[-1].text)
             continue
         text = block.text.strip()
         if not text:
@@ -256,6 +291,7 @@ def _docx(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dic
         style = block.style.name if block.style is not None else ''
         styled = style.startswith(('Heading', 'Title')) and len(text) <= LIMITS['title']
         result.blocks.append(Block(text, para=para, heading=True if styled else None))
+        characters += len(text)
 
     images = [part.blob for part in document.part.related_parts.values()
               if getattr(part, 'content_type', '') in {'image/png', 'image/jpeg', 'image/bmp', 'image/tiff'}
@@ -285,6 +321,9 @@ def _docx(data: bytes, ocr: OcrEngine | None, result: Extracted) -> Iterator[dic
 
 def _text(data: bytes, result: Extracted) -> Iterator[dict]:
     raw = data.decode('utf-8-sig', errors='replace').replace('\r\n', '\n').replace('\r', '\n')
+    if len(raw) > LIMITS['characters_per_document']:
+        raw = raw[:LIMITS['characters_per_document']]
+        result.truncated = True
     yield _progress('text', 1, 1)
     for para, paragraph in enumerate((p.strip() for p in re.split(r'\n\s*\n', raw) if p.strip()), 1):
         lines = paragraph.split('\n')

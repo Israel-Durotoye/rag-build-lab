@@ -1,0 +1,239 @@
+.sources {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.headTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 750;
+  text-shadow: var(--emboss);
+}
+
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-shadow: none;
+}
+
+.filter {
+  color: var(--muted);
+  font-size: 0.84rem;
+  max-width: 80ch;
+}
+
+.flip {
+  transform: rotate(180deg);
+}
+
+.list {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Grid items may shrink below their content, so a long code line scrolls
+   inside its own box instead of widening the page. */
+.list > li {
+  min-width: 0;
+}
+
+.source {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px;
+  scroll-margin: 96px 0 120px;
+}
+
+.source:focus {
+  outline: none;
+}
+
+.source:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Followed from a citation: the card lights up for a moment. */
+.source[data-flash] {
+  animation: sourceFlash 1.6s var(--ease);
+}
+
+@keyframes sourceFlash {
+  0%,
+  45% {
+    box-shadow:
+      var(--raise),
+      0 0 0 2px var(--accent-line),
+      var(--glow);
+  }
+  100% {
+    box-shadow: var(--raise);
+  }
+}
+
+.sourceHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.sourceTitle {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.trail {
+  color: var(--muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 260px;
+}
+
+.units {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.units > * {
+  min-width: 0;
+}
+
+.units :global(.passage-text) {
+  overflow-wrap: break-word;
+}
+
+/* A manual's table headers can be long sentences: let them wrap so the
+   table fits its card instead of scrolling sideways. */
+.units :global(.table th) {
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.notes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.noteCell .notes {
+  margin-bottom: 0;
+}
+
+.table {
+  margin: 2px 0;
+}
+
+.matched td {
+  background: var(--accent-soft);
+}
+
+.matched td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* A row for another model: kept in place, greyed and hatched (the grey
+   keeps AA contrast; the hatching and struck-through chips carry "other"). */
+.masked td {
+  color: var(--muted);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--other-soft) 0 8px,
+    transparent 8px 16px
+  );
+}
+
+.masked td:first-child {
+  box-shadow: inset 3px 0 0 var(--line-strong);
+}
+
+.noteCell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.sourceFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.licence {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.licence a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+@container (max-width: 620px) {
+  .source {
+    padding: 16px 14px;
+  }
+  .sourceHead {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .badges {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    max-width: none;
+  }
+  .licence {
+    margin-left: 0;
+  }
+}

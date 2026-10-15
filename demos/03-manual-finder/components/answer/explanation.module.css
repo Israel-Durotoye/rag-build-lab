@@ -1,0 +1,130 @@
+.explanation {
+  display: grid;
+  gap: 14px;
+  overflow-wrap: break-word;
+}
+
+.explanation > * {
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.005em;
+  text-shadow: var(--emboss);
+}
+
+.by {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.explanation :global(.markdown) {
+  max-width: 74ch;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.waiting {
+  display: grid;
+  gap: 9px;
+  max-width: 62ch;
+}
+
+.short {
+  width: 55%;
+}
+
+/* A caret after the last words while the answer streams in. */
+.streaming :global(.markdown) > p:last-child::after,
+.streaming :global(.markdown) > h4:last-child::after,
+.streaming :global(.markdown) > :is(ul, ol):last-child > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  margin-left: 3px;
+  vertical-align: -2px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  animation: caretBlink 1s steps(2) infinite;
+}
+
+@keyframes caretBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.quotes {
+  display: grid;
+  gap: 10px;
+  max-width: 74ch;
+}
+
+.quotes li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.only {
+  flex: none;
+}
+
+.quotes blockquote {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--line-strong);
+  color: var(--ink);
+}
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+.status > svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.status[data-tone="ok"] > svg {
+  color: var(--ok);
+}
+
+.status[data-tone="warn"] > svg {
+  color: var(--warn);
+}
+
+.status[data-tone="info"] > svg {
+  color: var(--accent);
+}
+
+.status[data-tone="quiet"] > svg {
+  color: var(--muted);
+}
+
+.status + .status {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.detail {
+  color: var(--muted);
+}

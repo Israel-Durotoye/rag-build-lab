@@ -1,20 +1,11 @@
 [
-  {
-    "question": "What does E17 mean?",
-    "expected_source": "m1:e17:0",
-    "filters": {
-      "device": "M1"
-    }
-  },
-  {
-    "question": "xylophonemeteoritezz",
-    "expected_status": "insufficient_evidence",
-    "filters": {
-      "device": "M1"
-    }
-  },
-  {
-    "question": "What does E17 mean?",
-    "expected_status": "clarification"
-  }
+  {"question": "What board is revision code a020d3?", "expected_source": "rpi-hardware:new-style-revision-codes-in-use-u22:0", "filters": {"device": "rpi-3b-plus"}},
+  {"question": "Which header pin is RA4M1 port P102?", "expected_source": "uno-r4-wifi-manual:pwm-u21:0", "filters": {"device": "uno-r4-wifi"}},
+  {"question": "Which header pin is RA4M1 port P102?", "expected_source": "uno-r4-minima-manual:pwm-u04:0", "filters": {"device": "uno-r4-minima"}},
+  {"question": "Upload fails with exit status 74", "expected_source": "arduino-help-center:failed-uploading-uploading-error-exit-status-74-u01:0", "filters": {"device": "uno-r4-minima"}},
+  {"question": "Network boot stalls when the TFTP server is on a different subnet", "expected_source": "rpi-hardware:tftp-server-on-separate-subnet-not-supported-u01:0", "filters": {"device": "rpi-3b"}},
+  {"question": "The little red light on the board keeps flickering and sometimes goes out", "expected_source": "rpi-configuration:raspberry-pi-1-2-3-and-4-leds-u02:0", "filters": {"device": "rpi-2b"}},
+  {"question": "Can the 3B+ boot from USB mass storage out of the box?", "expected_source": "rpi-hardware:raspberry-pi-3b-zero-2-w-u01:0", "filters": {"device": "rpi-3b-plus"}},
+  {"question": "What does GPIO 22 select in GPIO boot mode?", "expected_status": "clarification"},
+  {"question": "xylophonemeteoritezz", "expected_status": "insufficient_evidence", "filters": {"device": "rpi-2b"}}
 ]

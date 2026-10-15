@@ -57,6 +57,35 @@ Without a model key it still reads, chunks and searches notes, and shows
 sentences copied from them. See [setup, architecture and deployment
 instructions](demos/02-study-companion/WEB_README.md).
 
+## Finder website (Manual Finder) — Python backend + Next.js frontend
+
+The third demo, Finder, finds the exact passage for the exact device model.
+It is for anyone who juggles look-alike products, such as a support agent:
+pick the model you are working on, ask by fault code, pin, part number or
+symptom, and get a cited answer drawn only from that model's passages. Every
+manual is split into units (paragraphs, list items, table rows) that record
+the models and revisions they apply to; the filter runs before ranking, an
+exact code is looked up in the model's own tables, and with no model chosen
+Finder always asks which one. A Lab page runs one query through keyword,
+semantic and hybrid search with the rank-fusion arithmetic written out, and
+an Evaluate page runs twelve labelled queries through every mode. Its sample
+library is real documentation (Raspberry Pi and Arduino, CC BY-SA 4.0), not
+written for this repository. It shares `rag_core/web` with the other sites.
+From the repository root:
+
+```bash
+cd demos/03-manual-finder
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ../.. -r backend/requirements.txt
+npm ci
+npm run api    # Python backend on :8002
+npm run dev    # frontend on :3002 (second terminal)
+```
+
+Without a model key it still filters, searches, looks up codes and compares
+modes, and answers are sentences copied from the manuals. See [setup,
+architecture and deployment instructions](demos/03-manual-finder/WEB_README.md).
+
 ## Python demos quick start
 
 Python 3.11 or newer and SQLite with FTS5 are required. Run commands from the repository root.
@@ -84,7 +113,7 @@ Each directory contains its own app, config, corpus, manifest, evaluation cases,
 |---|---|---|
 | 1 | `demos/01-campus-desk` | Handbook search and evidence-backed generation |
 | 2 | `demos/02-study-companion` | Section/fixed chunking and contextual follow-up |
-| 3 | `demos/03-manual-finder` | Device filtering; keyword/dense/hybrid retrieval |
+| 3 | `demos/03-manual-finder` | Device filtering on real manuals; keyword/dense/hybrid retrieval |
 | 4 | `demos/04-repo-guide` | File/line evidence and optional reranking |
 | 5 | `demos/05-paper-compare` | Independent retrieval for each selected paper |
 | 6 | `demos/06-policy-timeline` | Effective dates, gaps, overlap detection and version comparison |
@@ -124,7 +153,7 @@ python -m pip install -e '.[semantic]'
 export RAG_EMBEDDING_MODEL='sentence-transformers/all-MiniLM-L6-v2'
 # Optional:
 export RAG_RERANKER_MODEL='cross-encoder/ms-marco-MiniLM-L6-v2'
-python -m rag_core.cli --config demos/03-manual-finder/config.json --mode hybrid ask 'E17' --device M1
+python -m rag_core.cli --config demos/03-manual-finder/config.json --mode hybrid ask 'Which header pin is RA4M1 port P102?' --device uno-r4-wifi
 ```
 
 These example model identifiers are configurable, not performance recommendations. Initial use downloads weights and may require significant disk space. Dense search uses cosine similarity; hybrid search uses reciprocal rank fusion with constant 60 and stable ID ties. Candidate vectors are computed per request in this small baseline, not stored in a production vector database. Models are never loaded with `trust_remote_code=True`.
@@ -180,6 +209,6 @@ python scripts/evaluate_all.py
 
 ## Limits and next steps
 
-This is a runnable learning repository, not ten production services. Included evaluation sets are deliberately small. Outside the two websites (Campus Guide and Study Companion, which read uploaded PDF and Word files, run OCR and store embeddings per workspace) there is no file-upload API, PDF parser, OCR engine or persisted embedding store, and nowhere is there production authentication, an answer cache, rate limiting or deployment automation. Follow each demo's Codex brief to expand it after measuring the baseline. Keep generated answers and build results out of public posts until you have run them yourself.
+This is a runnable learning repository, not ten production services. Included evaluation sets are deliberately small. Outside the three websites (Campus Guide, Study Companion and Finder, which read uploaded PDF and Word files, run OCR and store embeddings per workspace) there is no file-upload API, PDF parser, OCR engine or persisted embedding store, and nowhere is there production authentication, an answer cache, rate limiting or deployment automation. Follow each demo's Codex brief to expand it after measuring the baseline. Keep generated answers and build results out of public posts until you have run them yourself.
 
 No software license has been chosen on your behalf. Add a license before inviting third-party reuse beyond ordinary repository viewing.

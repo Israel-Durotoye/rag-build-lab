@@ -1,0 +1,93 @@
+.card {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.22rem;
+  line-height: 1.3;
+  font-weight: 750;
+  letter-spacing: -0.012em;
+  text-shadow: var(--emboss);
+  max-width: 60ch;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* Each choice is raised out of the card, ready to be pressed. */
+.choices .choice {
+  min-height: 46px;
+  padding: 6px 18px 6px 8px;
+  gap: 10px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: var(--raise);
+}
+
+/* Doubled class: outranks the global chip hover. */
+.choices .choice.choice:hover {
+  box-shadow: var(--raise-lg);
+}
+
+.choices .choice.choice:active {
+  box-shadow: var(--press-sm);
+}
+
+.short {
+  display: grid;
+  place-items: center;
+  min-width: 46px;
+  height: 32px;
+  padding: 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--lcd);
+  box-shadow: var(--press-sm);
+  color: var(--lcd-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.matched {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line-strong);
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.help {
+  margin-top: 2px;
+  padding-left: 4px;
+}
+
+@media (max-width: 520px) {
+  .choices {
+    display: grid;
+  }
+  .choices .choice {
+    width: 100%;
+    flex-wrap: wrap;
+    border-radius: var(--r-md);
+  }
+  /* On its own line, under the name. */
+  .matched {
+    flex-basis: 100%;
+    padding-left: 56px;
+    border-left: 0;
+  }
+}

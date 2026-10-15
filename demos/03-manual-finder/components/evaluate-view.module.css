@@ -1,0 +1,350 @@
+/* Evaluate: the labelled queries through every search mode, and the runs.
+   Every colour, shadow and radius comes from the tokens in app/globals.css. */
+
+/* Single-column grids set their column to minmax(0, 1fr): an implicit auto
+   column would grow to fit the results table and push the page wider than a
+   phone, instead of letting the table scroll inside its frame. */
+.root,
+.block {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ------------------------------------------------------------ running */
+
+.runPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.runHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 24px;
+}
+.runText {
+  display: grid;
+  gap: 6px;
+  max-width: 68ch;
+  color: var(--ink-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+}
+.fill {
+  display: block;
+  height: 100%;
+  min-width: 12px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  box-shadow: var(--glow);
+  transition: width 0.3s var(--ease);
+}
+.live {
+  min-height: 1.5em;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------ a run */
+
+.resultsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 20px;
+}
+.resultsHead > div {
+  display: grid;
+  gap: 4px;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+}
+.meta div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.meta dt {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.meta dd {
+  font-size: 0.9rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.scope {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.scope svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent);
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.tile {
+  display: grid;
+  gap: 2px;
+  padding: 12px 16px;
+}
+.tileLabel {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--muted);
+}
+.tileValue {
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.tileNote {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------ the table */
+
+.results {
+  min-width: 860px;
+}
+/* Row headers carry the query: plain text, not the column-header style. */
+.results tbody th,
+.results tfoot th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 250px;
+  max-width: 330px;
+  background: var(--base-deep);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.results thead th:first-child {
+  left: 0;
+  z-index: 2;
+}
+.results tfoot td,
+.results tfoot th {
+  border-top: 1px solid var(--line-strong);
+}
+.results tfoot td {
+  font-weight: 650;
+  color: var(--ink);
+}
+.qhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.qid {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--faint);
+}
+.qtext {
+  display: block;
+  margin-top: 6px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.labLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.cell {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+.hit,
+.miss,
+.wrong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.hit {
+  color: var(--ok);
+  font-weight: 700;
+}
+.miss {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.wrong {
+  color: var(--bad);
+  font-weight: 700;
+}
+.count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.count.wrong {
+  font-size: 0.82rem;
+}
+.asked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+}
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.small {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------ saved runs */
+
+.runs {
+  display: grid;
+  gap: 12px;
+}
+.runItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: var(--base);
+  box-shadow: var(--raise-sm);
+}
+.runItem[data-current] {
+  box-shadow:
+    var(--press-sm),
+    inset 3px 0 0 var(--accent);
+}
+.runInfo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  min-width: 0;
+}
+.runTotals {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.runActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.viewButton[aria-pressed="true"] {
+  color: var(--accent);
+  box-shadow: var(--press-sm);
+}
+
+/* ------------------------------------------------------------ the queries */
+
+.queries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.query {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+.queryText {
+  font-weight: 650;
+  color: var(--ink);
+}
+.expected {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  font-size: 0.84rem;
+}
+.expected code {
+  font-size: 0.76rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.label {
+  font-size: 0.78rem;
+  color: var(--faint);
+}
+.note {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+.queryFoot {
+  justify-self: start;
+}
+.loading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.loading .skeletonLine {
+  height: 18px;
+}
+
+@media (max-width: 860px) {
+  .queries {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
