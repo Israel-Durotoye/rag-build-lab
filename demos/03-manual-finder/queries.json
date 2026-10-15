@@ -1,0 +1,174 @@
+[
+  {
+    "id": "q01",
+    "query": "What does GPIO 22 select in GPIO boot mode?",
+    "kind": "exact_code",
+    "model": "rpi-3b-plus",
+    "revision": null,
+    "expected": [
+      "rpi-hardware:later-raspberry-pi-3b-bcm2837b0-with-the-metal-l-u03:0"
+    ],
+    "expectStatus": "answer",
+    "note": "On the 3B+ GPIO 22 selects NAND. The original 3B's table, where it selects SD0, must not be used.",
+    "forbidden": [
+      "rpi-hardware:raspberry-pi-3b-and-compute-module-3-u01:0",
+      "rpi-hardware:gpio-boot-mode-u05:0"
+    ],
+    "forbiddenNote": "The original BCM2837 3B's table row, where GPIO 22 selects SD0, and its bank numbers (22-26)."
+  },
+  {
+    "id": "q02",
+    "query": "Which header pin is RA4M1 port P102?",
+    "kind": "exact_code",
+    "model": "uno-r4-wifi",
+    "revision": null,
+    "expected": [
+      "uno-r4-wifi-manual:pwm-u21:0"
+    ],
+    "expectStatus": "answer",
+    "note": "P102 is D13 on the UNO R4 WiFi but D5 on the UNO R4 Minima.",
+    "forbidden": [
+      "uno-r4-minima-manual:pwm-u04:0"
+    ],
+    "forbiddenNote": "The UNO R4 Minima's row: P102 is D5 there."
+  },
+  {
+    "id": "q03",
+    "query": "Device Manager lists my board as ATmega16u2 DFU and it won't upload",
+    "kind": "exact_code",
+    "model": "uno-r3",
+    "revision": null,
+    "expected": [
+      "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u02:0",
+      "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u03:0"
+    ],
+    "expectStatus": "answer",
+    "note": "Only the UNO R3 (and older) has the ATmega16U2 USB-to-serial chip that shows up as 'ATmega16u2 DFU'; the R4 boards have none."
+  },
+  {
+    "id": "q04",
+    "query": "My Pi gets noticeably slower once it's only slightly warm, nowhere near 80 degrees",
+    "kind": "paraphrase",
+    "model": "rpi-3b-plus",
+    "revision": null,
+    "expected": [
+      "rpi-hardware:frequency-management-and-thermal-control-u03:0"
+    ],
+    "expectStatus": "answer",
+    "note": "Only the 3B+ has the 60 °C soft limit that drops the clock from 1.4 GHz to 1.2 GHz."
+  },
+  {
+    "id": "q05",
+    "query": "The little red light on the board keeps flickering and sometimes goes out",
+    "kind": "paraphrase",
+    "model": "rpi-2b",
+    "revision": null,
+    "expected": [
+      "rpi-configuration:raspberry-pi-1-2-3-and-4-leds-u02:0"
+    ],
+    "expectStatus": "answer",
+    "note": "A red PWR LED that is off or flickering means undervoltage (shared by the 2B, 3B and 3B+)."
+  },
+  {
+    "id": "q06",
+    "query": "After I made it act as a USB keyboard, my computer shows it on a different port and I can't find it",
+    "kind": "paraphrase",
+    "model": "uno-r4-wifi",
+    "revision": null,
+    "expected": [
+      "uno-r4-wifi-manual:usb-hid-u01:0"
+    ],
+    "expectStatus": "answer",
+    "note": "The UNO R4 WiFi's HID note: double-tap reset and select the board again.",
+    "forbidden": [
+      "uno-r4-minima-manual:usb-hid-u01:0",
+      "uno-r4-minima-manual:usb-hid-u02:0",
+      "uno-r4-minima-manual:usb-hid-u03:0",
+      "uno-r4-minima-manual:usb-hid-u04:0"
+    ],
+    "forbiddenNote": "The UNO R4 Minima's HID passages, from its own manual."
+  },
+  {
+    "id": "q07",
+    "query": "Upload fails with exit status 74",
+    "kind": "mixed",
+    "model": "uno-r4-minima",
+    "revision": null,
+    "expected": [
+      "arduino-help-center:failed-uploading-uploading-error-exit-status-74-u01:0"
+    ],
+    "expectStatus": "answer",
+    "note": "Exit status 74 comes from dfu-util, which the UNO R4 Minima uploads with."
+  },
+  {
+    "id": "q08",
+    "query": "Network boot stalls when the TFTP server is on a different subnet",
+    "kind": "mixed",
+    "model": "rpi-3b",
+    "revision": null,
+    "expected": [
+      "rpi-hardware:tftp-server-on-separate-subnet-not-supported-u01:0"
+    ],
+    "expectStatus": "answer",
+    "note": "A known boot-ROM problem on the 3B, fixed in the 3B+."
+  },
+  {
+    "id": "q09",
+    "query": "Do I need program_usb_boot_mode=1 to boot my 3B+ from USB?",
+    "kind": "mixed",
+    "model": "rpi-3b-plus",
+    "revision": null,
+    "expected": [
+      "rpi-hardware:raspberry-pi-3b-zero-2-w-u01:0"
+    ],
+    "expectStatus": "answer",
+    "note": "The 3B+ boots from USB mass storage out of the box; the OTP step is for the 2B v1.2 and 3B.",
+    "forbidden": [
+      "rpi-hardware:raspberry-pi-2b-3a-3b-cm3-cm3-u03:0",
+      "rpi-hardware:enable-usb-host-boot-mode-with-otp-u05:0"
+    ],
+    "forbiddenNote": "The OTP steps the 2B v1.2 and the 3B need for USB boot; the 3B+ boots from USB without them."
+  },
+  {
+    "id": "q10",
+    "query": "Does my Pi 3 boot from USB out of the box?",
+    "kind": "ambiguity",
+    "model": null,
+    "revision": null,
+    "expected": [],
+    "expectStatus": "clarification",
+    "expectedCandidates": [
+      "rpi-3b",
+      "rpi-3b-plus"
+    ],
+    "note": "'Pi 3' could be the 3B or the 3B+, and their answers differ, so Finder must ask."
+  },
+  {
+    "id": "q11",
+    "query": "Which header pin is port P102?",
+    "kind": "ambiguity",
+    "model": null,
+    "revision": null,
+    "expected": [],
+    "expectStatus": "clarification",
+    "expectedCandidates": [
+      "uno-r4-minima",
+      "uno-r4-wifi"
+    ],
+    "note": "No model chosen: Finder asks, listing the boards whose manuals have P102 first."
+  },
+  {
+    "id": "q12",
+    "query": "What does GPIO 22 select in GPIO boot mode?",
+    "kind": "ambiguity",
+    "model": "rpi-3b",
+    "revision": null,
+    "expected": [],
+    "expectStatus": "clarification",
+    "expectedCandidates": [
+      "bcm2837",
+      "bcm2837b0"
+    ],
+    "note": "On the 3B the answer depends on the revision (SD0 on the original BCM2837, NAND on the BCM2837B0), so Finder asks which."
+  }
+]

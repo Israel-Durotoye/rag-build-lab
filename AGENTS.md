@@ -16,12 +16,20 @@ way: a Python (FastAPI) backend in backend/ and a Next.js frontend, on ports 800
 and 3001 so both sites can run together. From demos/02-study-companion run the same
 five commands. See demos/02-study-companion/WEB_README.md.
 
+Finder (Manual Finder) is entirely in demos/03-manual-finder, built the same way,
+on ports 8002 and 3002. From demos/03-manual-finder run the same five commands.
+See demos/03-manual-finder/WEB_README.md. Its sample library is real documentation
+fetched at pinned commits (library/fetch_sources.py) and built by
+library/build_corpus.py; never edit corpus.json by hand, and give every tag
+correction in library/models.json its reason.
+
 What more than one website needs lives in rag_core/web (extraction, OCR, embeddings,
 hybrid retrieval, citation checks, NDJSON helpers, test doubles). Add shared backend
 code there, not as a copy in a second demo. After changing rag_core/web or rag_core,
 run the backend tests of every website (npm run test:api in each) and the root suite.
 A demo's own rules stay in its backend: Campus Guide's chunking and welcome page,
-Study Companion's sections, context budget and practice checks.
+Study Companion's sections, context budget and practice checks, Finder's model
+tagging, code index and clarification rules.
 
 Use permitted or synthetic fixtures. Never commit secrets, environments, databases, model weights or private documents. Default to local source-search mode. Clearly label generation, OCR, semantic retrieval and planner capabilities according to what actually runs.
 

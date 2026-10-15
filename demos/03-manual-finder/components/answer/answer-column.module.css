@@ -1,0 +1,16 @@
+/* The parts lay themselves out by the column's width (a single answer, one
+   side of a comparison, or a chat reply), not the window's. */
+.column {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.column > * {
+  min-width: 0;
+}
+
+.compact {
+  gap: 14px;
+}

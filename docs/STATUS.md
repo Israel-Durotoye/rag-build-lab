@@ -27,14 +27,27 @@ and flashcards whose quotes are checked against the notes. It is live at
 [its guide](../demos/02-study-companion/WEB_README.md) and
 [what was run](../demos/02-study-companion/WEB_RUN_RESULTS.md).
 
-The other eight demos retain their Python/Streamlit interfaces, as do these two
+Manual Finder has a website too, **Finder**, inside `demos/03-manual-finder`, built
+the same way and sharing `rag_core/web`. Its sample library is real documentation
+(Raspberry Pi 2 Model B, 3 Model B and 3 Model B+; Arduino UNO R3, UNO R4 Minima and
+UNO R4 WiFi; CC BY-SA 4.0) fetched at pinned commits, split into units that each
+record the models and revisions they apply to, and reviewed passage by passage.
+Every search is filtered to the chosen model before ranking; with no model chosen
+Finder always asks which one; codes are looked up exactly in the model's tables;
+answers are streamed with checked citations. A Lab page compares keyword, semantic
+and hybrid retrieval on one query, and an Evaluate page runs twelve labelled queries
+through every mode. It runs locally and has deployment tooling; it is **not
+deployed**. See [its guide](../demos/03-manual-finder/WEB_README.md) and
+[what was run](../demos/03-manual-finder/WEB_RUN_RESULTS.md).
+
+The other seven demos retain their Python/Streamlit interfaces, as do these three
 alongside their websites.
 
 | Demo | Implemented now | Still to build or measure |
 |---|---|---|
 | Campus Desk | Synthetic handbook viewer, side-by-side evidence, metadata citation labels, optional generation, seven fixed questions, answer-support checklist and 75-second script | Held-out paraphrase/near-miss evaluation; robust semantic answerability; live model verification |
 | Study Companion | Own UI with explanation (verbatim offline, optional model), supporting sections and original source; fixed/section chunking; parent-section expansion under a 250-word budget; one question-only follow-up per topic; reset; saved section vs fixed runs over eight questions (no winner declared); manual exception checklist. **Website:** uploads (PDF, Word, text, Markdown) and sample notes; sections; both chunkings indexed per workspace; hybrid retrieval; expansion within an adjustable budget; streamed explanations at three levels with checked citations; caveats quoted by rule; follow-ups by question only; chunking lab and question sets; quizzes, flashcards and recall cards with quote checks; per-step trace pages; live model check of the exception on five replies (all kept it); deployed (Vercel and a Hugging Face Space) and checked through the live address | A fine-grained model token in place of the login token; held-out/paraphrase questions; semantic answerability (matches by meaning alone are flagged, not judged); answer-quality evaluation; long documents; scanned notes through this site |
-| Manual Finder | Device filter, mandatory device choice, optional dense/hybrid/RRF | Larger identifier/paraphrase evaluation |
+| Manual Finder | Real manuals (Raspberry Pi, Arduino; CC BY-SA 4.0) as model-tagged units; device filter before ranking; mandatory device choice; optional dense/hybrid/RRF. **Website:** model picker; tagging by whole-name matching, headers, headings and reviewed corrections; uploads with a model list; exact-code lookup and fault cards; always-ask, ambiguous-name, conflict and revision clarification; keyword, semantic and hybrid retrieval with configurable RRF and an exact-fraction tie rule; section-as-the-model-sees-it context; streamed cited answers; code matrix; look-alike guide; search-mode lab; twelve labelled queries in every mode with saved runs | Held-out and larger identifier/paraphrase evaluation; answer-quality evaluation; tagging of uploads without a reviewed model list; per-column splitting of tables with one column per model; deployment |
 | Repo Guide | Snapshot fixture, commit-pinned Git importer, line citations, optional reranker | AST chunking, real model comparison and latency experiment |
 | Paper Compare | Separate retrieval per selected document; unsupported field can yield no match | Structured claim-by-claim comparison, 20 development questions and held-out set |
 | Policy Timeline | Half-open effective dates, gaps, overlapping version detection, version comparison, atomic reindex/delete API | Richer policy-family handling, guided update/delete UI |

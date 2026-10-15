@@ -1,0 +1,491 @@
+/* Library: the sample library, the upload panel (components/upload-panel.tsx)
+   and one raised card per manual. Surfaces, colours and shadows all come
+   from the tokens in app/globals.css, so both themes follow. */
+
+.page {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cardHead {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.external {
+  overflow-wrap: anywhere;
+}
+.external svg {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: -1px;
+}
+
+.errorRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.errorRow > :first-child {
+  flex: 1 1 280px;
+}
+
+/* ------------------------------------------------------------ capacity */
+
+.capacity {
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+  padding: 14px 18px;
+  border-radius: var(--r-lg);
+  background: var(--base-deep);
+  box-shadow: var(--press);
+}
+.capacityNumber {
+  font-family: var(--mono);
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+.capacityMeter {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--base);
+  box-shadow: var(--press-sm);
+  overflow: hidden;
+}
+.capacityMeter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* ------------------------------------------------------------ intake row */
+
+.intake {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+.intake > :only-child {
+  grid-column: 1 / -1;
+}
+
+.sample,
+.upload,
+.placeholder {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.placeholder {
+  min-height: 220px;
+}
+
+.sampleHead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--raise);
+  color: var(--accent);
+}
+.sampleList {
+  display: grid;
+  padding: 4px 16px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+}
+.sampleList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.sampleList li:last-child {
+  border-bottom: 0;
+}
+.sampleActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+/* ------------------------------------------------------------ upload */
+
+/* The drop zone is a basin pressed into the panel, with the upload control
+   raised in its middle. */
+.drop {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 30px 20px 26px;
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--base-deep);
+  box-shadow: var(--press-lg);
+  color: var(--muted);
+  text-align: center;
+  transition:
+    box-shadow 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.drop:hover:not(:disabled) {
+  color: var(--ink-2);
+}
+.drop:hover:not(:disabled) .dropIcon {
+  box-shadow: var(--raise-lg);
+}
+.drop[data-dragging] {
+  color: var(--ink);
+  box-shadow:
+    var(--press-lg),
+    0 0 0 2px var(--accent-line);
+}
+.drop:disabled .dropIcon {
+  color: var(--faint);
+  box-shadow: var(--press-sm);
+}
+.dropIcon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--raise);
+  color: var(--accent);
+  transition: box-shadow 0.18s var(--ease);
+}
+.dropTitle {
+  color: var(--ink);
+  font-size: 1rem;
+}
+.drop:disabled .dropTitle {
+  color: var(--ink-2);
+}
+
+.limits {
+  display: grid;
+  gap: 7px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.limits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.limits svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--faint);
+}
+
+.progress {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--r-lg);
+  background: var(--base-deep);
+  box-shadow: var(--press-lg);
+}
+.progressFile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--accent);
+}
+.fileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Each step is an indicator light: lit when done, pulsing while it runs,
+   dark until then, an empty ring when it was not needed. */
+.steps {
+  display: grid;
+  gap: 9px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 0.88rem;
+  color: var(--faint);
+}
+.steps li[data-state="done"] {
+  color: var(--ink-2);
+}
+.steps li[data-state="current"] {
+  color: var(--ink);
+  font-weight: 700;
+}
+.steps small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.led {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--press-sm);
+}
+.steps li[data-state="done"] .led {
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+.steps li[data-state="current"] .led {
+  background: var(--accent);
+  box-shadow: var(--glow);
+  animation: ledPulse 1.2s var(--ease) infinite;
+}
+.steps li[data-state="skipped"] .led {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--line-strong);
+}
+@keyframes ledPulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.meter {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--base);
+  box-shadow: var(--press-sm);
+  overflow: hidden;
+}
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  box-shadow: var(--glow);
+  transition: width 0.3s var(--ease);
+}
+
+.outcomes {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+}
+.outcomesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ink-2);
+}
+.outcomeList {
+  display: grid;
+  gap: 6px;
+}
+.outcome {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 0.86rem;
+  color: var(--ink-2);
+}
+.outcome svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--bad);
+}
+.outcome[data-ok] svg {
+  color: var(--ok);
+}
+.outcomeName {
+  font-weight: 650;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------ manuals */
+
+.group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+.groupHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  gap: 22px;
+}
+.cards > li {
+  display: grid;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-content: start;
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.cardTitle {
+  font-size: 1.1rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.cardTitle a {
+  color: var(--ink);
+}
+.cardTitle a:hover {
+  color: var(--accent);
+}
+.source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.cardModels {
+  display: grid;
+  gap: 8px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.stats div {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+}
+.stats dt {
+  order: 2;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stats dd {
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.notes {
+  display: grid;
+  gap: 4px;
+  padding-left: 14px;
+  list-style: disc;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.cardFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.confirm {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--base-deep);
+  box-shadow:
+    var(--press-sm),
+    inset 3px 0 0 var(--bad);
+  color: var(--ink-2);
+}
+
+.emptyList {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+@media (max-width: 1000px) {
+  .intake {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .capacity {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats {
+    gap: 8px;
+  }
+  .stats div {
+    padding: 9px 10px;
+  }
+  .sampleHead {
+    gap: 12px;
+  }
+  .badge {
+    width: 44px;
+    height: 44px;
+  }
+}

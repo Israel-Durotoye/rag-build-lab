@@ -1,0 +1,346 @@
+{
+ "createdAt": "2026-10-15T03:07:08+00:00",
+ "k": 5,
+ "constant": 60,
+ "tieBreak": "best-rank",
+ "embedder": "BAAI/bge-small-en-v1.5",
+ "corpusVersion": "e8a48ef1ab6151950af712c37f2acf30c8769c16228d834738bfc8ac1fa10075",
+ "queries": 12,
+ "totals": {
+  "hybrid": {
+   "hits": 8,
+   "of": 9
+  },
+  "keyword": {
+   "hits": 6,
+   "of": 9
+  },
+  "semantic": {
+   "hits": 6,
+   "of": 9
+  }
+ },
+ "lookup": {
+  "hits": 3,
+  "of": 4
+ },
+ "clarification": {
+  "asked": 3,
+  "of": 3
+ },
+ "lookalike": {
+  "queries": 4,
+  "found": {
+   "hybrid": 0,
+   "keyword": 0,
+   "semantic": 0
+  }
+ },
+ "rows": [
+  {
+   "id": "q01",
+   "kind": "exact_code",
+   "model": "rpi-3b-plus",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": {
+    "code": "GPIO 22",
+    "chunkId": "rpi-hardware:later-raspberry-pi-3b-bcm2837b0-with-the-metal-l-u03:0",
+    "hit": true
+   },
+   "ranks": {
+    "hybrid": null,
+    "keyword": null,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q02",
+   "kind": "exact_code",
+   "model": "uno-r4-wifi",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": {
+    "code": "P102",
+    "chunkId": "uno-r4-wifi-manual:pwm-u21:0",
+    "hit": true
+   },
+   "ranks": {
+    "hybrid": 5,
+    "keyword": 1,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q03",
+   "kind": "exact_code",
+   "model": "uno-r3",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": {
+    "code": "ATMEGA16U2",
+    "chunkId": "uno-r3-datasheet:board-topology-u03:0",
+    "hit": false
+   },
+   "ranks": {
+    "hybrid": 2,
+    "keyword": 2,
+    "semantic": 3
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q04",
+   "kind": "paraphrase",
+   "model": "rpi-3b-plus",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": null,
+   "ranks": {
+    "hybrid": 5,
+    "keyword": null,
+    "semantic": 3
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q05",
+   "kind": "paraphrase",
+   "model": "rpi-2b",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": null,
+   "ranks": {
+    "hybrid": 3,
+    "keyword": 1,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q06",
+   "kind": "paraphrase",
+   "model": "uno-r4-wifi",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": null,
+   "ranks": {
+    "hybrid": 1,
+    "keyword": 2,
+    "semantic": 3
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q07",
+   "kind": "mixed",
+   "model": "uno-r4-minima",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": {
+    "code": "exit status 74",
+    "chunkId": "arduino-help-center:failed-uploading-uploading-error-exit-status-74-u01:0",
+    "hit": true
+   },
+   "ranks": {
+    "hybrid": 1,
+    "keyword": 1,
+    "semantic": 1
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q08",
+   "kind": "mixed",
+   "model": "rpi-3b",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": null,
+   "ranks": {
+    "hybrid": 1,
+    "keyword": 1,
+    "semantic": 1
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q09",
+   "kind": "mixed",
+   "model": "rpi-3b-plus",
+   "asked": false,
+   "reason": null,
+   "candidatesOk": null,
+   "lookup": null,
+   "ranks": {
+    "hybrid": 3,
+    "keyword": null,
+    "semantic": 2
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q10",
+   "kind": "ambiguity",
+   "model": null,
+   "asked": true,
+   "reason": "ambiguous_name",
+   "candidatesOk": true,
+   "lookup": null,
+   "ranks": {
+    "hybrid": null,
+    "keyword": null,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q11",
+   "kind": "ambiguity",
+   "model": null,
+   "asked": true,
+   "reason": "no_model",
+   "candidatesOk": true,
+   "lookup": null,
+   "ranks": {
+    "hybrid": null,
+    "keyword": null,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  },
+  {
+   "id": "q12",
+   "kind": "ambiguity",
+   "model": "rpi-3b",
+   "asked": true,
+   "reason": "revision",
+   "candidatesOk": true,
+   "lookup": null,
+   "ranks": {
+    "hybrid": null,
+    "keyword": null,
+    "semantic": null
+   },
+   "wrongModel": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   },
+   "lookalike": {
+    "hybrid": 0,
+    "keyword": 0,
+    "semantic": 0
+   }
+  }
+ ],
+ "scope": "Twelve labelled questions over the sample library, run with the settings shown. A small check of retrieval and of when Finder asks, not a benchmark of answer quality."
+}

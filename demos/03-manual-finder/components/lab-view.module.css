@@ -1,0 +1,604 @@
+/* Lab: one query through keyword, hybrid and semantic search, side by side.
+   Every colour, shadow and radius comes from the tokens in app/globals.css. */
+
+/* Every single-column grid here sets its column to minmax(0, 1fr): an
+   implicit auto column would grow to fit long unbreakable content (a query
+   chip, a passage table) and push the page wider than a phone. */
+.root,
+.results {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ------------------------------------------------------------ the form */
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+.queryLabel {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.queryRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px auto;
+  align-items: end;
+  gap: 14px;
+}
+/* A select is as wide as its longest option unless its column may shrink. */
+.controlLabel {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.controlLabel select {
+  width: 100%;
+  text-overflow: ellipsis;
+}
+.run {
+  min-height: 44px;
+  padding: 0 24px;
+}
+.constant {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.constant legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.constantRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px auto;
+  align-items: center;
+  gap: 14px;
+}
+.slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+.scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--faint);
+}
+.numberField {
+  min-height: 40px;
+}
+.numberField input {
+  width: 100%;
+  font-family: var(--mono);
+}
+
+/* Quick picks: the labelled queries. */
+.picks {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.picks summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.picks summary::marker {
+  color: var(--accent);
+}
+.pickList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pick {
+  max-width: 100%;
+  min-height: 34px;
+  gap: 8px;
+}
+.pickId {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--faint);
+}
+.pickModel {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.pickText {
+  min-width: 0;
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ explainer strip */
+
+.explainer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 22px;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+.point {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.point svg {
+  margin-top: 3px;
+  color: var(--accent);
+}
+.point strong {
+  color: var(--ink);
+}
+.now {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.now b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ results */
+
+.results[aria-busy="true"] .stage {
+  opacity: 0.55;
+  transition: opacity 0.2s var(--ease);
+}
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.summaryHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+}
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.facts strong {
+  color: var(--ink);
+}
+.searched {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.searched q {
+  color: var(--ink);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.stale {
+  color: var(--warn);
+  font-weight: 600;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+.legend {
+  flex: 1 1 260px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.legendNarrow {
+  display: none;
+}
+
+/* ------------------------------------------------------------ the three columns */
+
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 56px;
+  align-items: start;
+}
+/* The lines sit under the columns; the gaps between columns are where
+   they show. */
+.wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+.wire {
+  fill: none;
+  stroke: var(--accent-line);
+  stroke-width: 1.6;
+  transition:
+    opacity 0.16s var(--ease),
+    stroke 0.16s var(--ease);
+}
+.wire.beyond {
+  stroke: var(--faint);
+  stroke-dasharray: 4 5;
+  opacity: 0.8;
+}
+.wire.hot {
+  stroke: var(--accent);
+  stroke-width: 2.6;
+  opacity: 1;
+}
+.wire.dim {
+  opacity: 0.16;
+}
+.stubLabel {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+.stubLabel.hot {
+  fill: var(--accent);
+}
+.stubLabel.dim {
+  opacity: 0.3;
+}
+.tabs {
+  display: none;
+}
+
+.column {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+.columnHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 0 4px 4px;
+}
+.columnTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.columnTitle h3 {
+  font-size: 1.05rem;
+  text-shadow: var(--emboss);
+}
+.count {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--faint);
+}
+.columnNote {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.queryTerms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.more {
+  justify-self: start;
+}
+
+/* ------------------------------------------------------------ passage cards */
+
+.card {
+  position: relative;
+  border-radius: var(--r-md);
+  background: var(--base);
+  box-shadow: var(--raise-sm);
+  transition: box-shadow 0.16s var(--ease);
+}
+/* A passage from a model other than the one in question: kept in place,
+   visibly set aside. */
+.card[data-other] {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--other-soft) 0 8px,
+      transparent 8px 16px
+    ),
+    var(--base);
+}
+.card[data-linked] {
+  box-shadow:
+    var(--raise-sm),
+    0 0 0 2px var(--accent-line);
+}
+.card[data-open] {
+  box-shadow:
+    var(--press-sm),
+    0 0 0 2px var(--accent);
+}
+.cardButton {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.cardButton:focus-visible {
+  outline-offset: -2px;
+}
+.card[data-open] .cardButton :global(.rank),
+.card[data-linked] .cardButton :global(.rank) {
+  color: var(--accent);
+}
+.cardBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  min-width: 0;
+}
+.name {
+  display: block;
+  min-width: 0;
+}
+.description {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  min-width: 0;
+}
+.title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.card[data-open] .title {
+  display: block;
+}
+.snippet {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+.doc {
+  color: var(--ink-2);
+  margin-right: 2px;
+}
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.figures b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.arith {
+  display: block;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.arith b {
+  color: var(--accent);
+  font-weight: 600;
+}
+.tie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.term {
+  font-family: var(--mono);
+}
+/* Each list's rank for this passage, for screens too narrow for the lines. */
+.pills {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+.pills i {
+  font-style: normal;
+  color: var(--faint);
+}
+.pills span {
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--base-deep);
+  box-shadow: var(--press-sm);
+  color: var(--ink-2);
+}
+.pills span[data-self] {
+  color: var(--accent);
+}
+.pills span[data-missing] {
+  color: var(--faint);
+}
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 14px;
+  padding: 12px 0 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+.where {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  font-size: 0.8rem;
+}
+.where div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+}
+.where dt {
+  color: var(--faint);
+}
+.where dd {
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+/* Where the top k ends in a column. */
+.cut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.cut::before,
+.cut::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--accent-line);
+}
+.empty {
+  padding: 18px 16px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------ narrower screens */
+
+@media (max-width: 1100px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .column:not([data-active]) {
+    display: none;
+  }
+  .wires,
+  .legendWide {
+    display: none;
+  }
+  .tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+  }
+  .legendNarrow {
+    display: block;
+  }
+  .pills {
+    display: flex;
+  }
+}
+
+@media (max-width: 860px) {
+  .explainer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .controls {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+  .run {
+    grid-column: 1 / -1;
+  }
+  .constantRow {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .constantRow > :first-child {
+    grid-column: 1 / -1;
+  }
+  .constantRow > :last-child {
+    justify-self: start;
+  }
+  .pickText {
+    max-width: 100%;
+  }
+}

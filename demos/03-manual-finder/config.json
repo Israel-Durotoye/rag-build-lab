@@ -2,11 +2,11 @@
   "name": "Manual Finder",
   "kind": "manual",
   "session": 9,
-  "sample_question": "What does E17 mean?",
+  "sample_question": "Which header pin is RA4M1 port P102?",
   "default_options": {
     "filters": {
-      "device": "M1"
+      "device": "uno-r4-wifi"
     }
   },
-  "description": "Device selector, keyword and dense retrieval, rank fusion and clarification when device identity matters. Informational lookup only."
+  "description": "Real Raspberry Pi and Arduino documentation (CC BY-SA 4.0), split into passages that each record the device models they apply to. Choose a device: only its passages are searched. Keyword search by default; dense and hybrid retrieval with rank fusion when an embedding model is configured. Informational lookup only."
 }

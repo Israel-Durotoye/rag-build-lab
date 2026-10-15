@@ -16,7 +16,7 @@ LIMITS = {
     'section_text': 8000,
 }
 DOCUMENT_FIELDS = {'id', 'title', 'version', 'metadata', 'sections'}
-SECTION_FIELDS = {'id', 'title', 'text', 'location'}
+SECTION_FIELDS = {'id', 'title', 'text', 'location', 'metadata'}
 ID_PATTERN = re.compile(r'^[a-z0-9][a-z0-9-]{0,63}$')
 
 # Numbered clauses ("2.7 Grading System"), chapters, course codes ("ELE 314:").
@@ -112,12 +112,20 @@ def validate_documents(value) -> list[dict]:
                 raise DocumentError(f'Duplicate section ID “{section_id}”.')
             section_ids.add(section_id)
             title = _string(entry.get('title'), f'Section {index} title', LIMITS['title'])
-            clean.append({
+            section = {
                 'id': section_id,
                 'title': title,
                 'text': _string(entry.get('text'), f'Section “{title}” text', LIMITS['section_text']),
                 'location': _string(entry.get('location'), f'Section “{title}” location', LIMITS['location'], section_id),
-            })
+            }
+            if 'metadata' in entry:
+                # Per-section facts, such as the device models a passage applies to.
+                if not isinstance(entry['metadata'], dict) or not all(isinstance(k, str) for k in entry['metadata']):
+                    raise DocumentError(f'Section “{title}” metadata must be an object.')
+                if entry['metadata'].get('tenant') is not None:
+                    raise DocumentError('Tenant documents are not supported here.')
+                section['metadata'] = dict(entry['metadata'])
+            clean.append(section)
         documents.append({
             'id': doc_id,
             'title': _string(item.get('title'), 'Document title', LIMITS['title']),

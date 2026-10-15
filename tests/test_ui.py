@@ -12,7 +12,9 @@ def test_ui_load_and_search(path,monkeypatch):
     app=AppTest.from_file(str(path)).run(timeout=20)
     assert not app.exception
     if path.parent.name=='03-manual-finder':
-        next(s for s in app.selectbox if s.label=='Device').select('M1').run()
+        device=next(s for s in app.selectbox if s.label=='Device')
+        assert {'rpi-2b','rpi-3b','rpi-3b-plus','uno-r3','uno-r4-minima','uno-r4-wifi'}<=set(device.options)
+        device.select('uno-r4-wifi').run()
     next(b for b in app.button if b.label=='Search').click().run(timeout=20)
     assert not app.exception
 

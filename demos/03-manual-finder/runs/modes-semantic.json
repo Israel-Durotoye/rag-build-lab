@@ -1,0 +1,273 @@
+[
+ {
+  "id": "q01",
+  "query": "What does GPIO 22 select in GPIO boot mode?",
+  "kind": "exact_code",
+  "model": "rpi-3b-plus",
+  "revision": null,
+  "expected": [
+   "rpi-hardware:later-raspberry-pi-3b-bcm2837b0-with-the-metal-l-u03:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:gpio-boot-mode-u02:0",
+   "rpi-hardware:gpio-boot-mode-u04:0",
+   "rpi-hardware:gpio-boot-mode-u01:0",
+   "rpi-hardware:gpio-boot-mode-u03:0",
+   "rpi-hardware:gpio-boot-mode-u06:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q02",
+  "query": "Which header pin is RA4M1 port P102?",
+  "kind": "exact_code",
+  "model": "uno-r4-wifi",
+  "revision": null,
+  "expected": [
+   "uno-r4-wifi-manual:pwm-u21:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "uno-r4-wifi-datasheet:features-u02:0",
+   "uno-r4-wifi-datasheet:led-matrix-u02:0",
+   "uno-r4-wifi-datasheet:features-u01:0",
+   "uno-r4-wifi-datasheet:qwiic-i2c-connector-u06:0",
+   "uno-r4-wifi-datasheet:features-u03:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q03",
+  "query": "Device Manager lists my board as ATmega16u2 DFU and it won't upload",
+  "kind": "exact_code",
+  "model": "uno-r3",
+  "revision": null,
+  "expected": [
+   "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u02:0",
+   "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u03:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "arduino-help-center:5-check-for-additional-system-information-u11:0",
+   "arduino-help-center:try-this-first-u02:0",
+   "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u02:0",
+   "arduino-help-center:try-this-first-u03:0",
+   "arduino-help-center:if-arduino-uno-rev3-or-earlier-or-mega-is-not-re-u03:0"
+  ],
+  "hit": true,
+  "rank": 3,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q04",
+  "query": "My Pi gets noticeably slower once it's only slightly warm, nowhere near 80 degrees",
+  "kind": "paraphrase",
+  "model": "rpi-3b-plus",
+  "revision": null,
+  "expected": [
+   "rpi-hardware:frequency-management-and-thermal-control-u03:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:frequency-management-and-thermal-control-u02:0",
+   "rpi-hardware:frequency-management-and-thermal-control-u01:0",
+   "rpi-hardware:frequency-management-and-thermal-control-u03:0",
+   "rpi-hardware:typical-power-requirements-u29:0",
+   "rpi-hardware:power-supply-warnings-u03:0"
+  ],
+  "hit": true,
+  "rank": 3,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q05",
+  "query": "The little red light on the board keeps flickering and sometimes goes out",
+  "kind": "paraphrase",
+  "model": "rpi-2b",
+  "revision": null,
+  "expected": [
+   "rpi-configuration:raspberry-pi-1-2-3-and-4-leds-u02:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-configuration:check-led-warning-codes-u01:0",
+   "rpi-configuration:check-led-warning-codes-u18:0",
+   "rpi-configuration:check-led-warning-codes-u05:0",
+   "rpi-configuration:check-led-warning-codes-u02:0",
+   "rpi-configuration:check-led-warning-codes-u07:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q06",
+  "query": "After I made it act as a USB keyboard, my computer shows it on a different port and I can't find it",
+  "kind": "paraphrase",
+  "model": "uno-r4-wifi",
+  "revision": null,
+  "expected": [
+   "uno-r4-wifi-manual:usb-hid-u01:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "arduino-help-center:5-check-for-additional-system-information-u05:0",
+   "uno-r4-wifi-manual:usb-hid-u03:0",
+   "uno-r4-wifi-manual:usb-hid-u01:0",
+   "arduino-help-center:1-disconnect-and-reconnect-your-board-u01:0",
+   "uno-r4-wifi-manual:usb-hid-u02:0"
+  ],
+  "hit": true,
+  "rank": 3,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q07",
+  "query": "Upload fails with exit status 74",
+  "kind": "mixed",
+  "model": "uno-r4-minima",
+  "revision": null,
+  "expected": [
+   "arduino-help-center:failed-uploading-uploading-error-exit-status-74-u01:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "arduino-help-center:failed-uploading-uploading-error-exit-status-74-u01:0",
+   "arduino-help-center:dfu-util-errors-when-uploading-exit-status-74-u03:0",
+   "arduino-help-center:try-this-first-u05:0",
+   "arduino-help-center:try-this-first-u04:0",
+   "arduino-help-center:dfu-util-errors-when-uploading-exit-status-74-u02:0"
+  ],
+  "hit": true,
+  "rank": 1,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q08",
+  "query": "Network boot stalls when the TFTP server is on a different subnet",
+  "kind": "mixed",
+  "model": "rpi-3b",
+  "revision": null,
+  "expected": [
+   "rpi-hardware:tftp-server-on-separate-subnet-not-supported-u01:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:tftp-server-on-separate-subnet-not-supported-u01:0",
+   "rpi-hardware:arp-check-can-fail-to-respond-in-the-middle-of-t-u02:0",
+   "rpi-hardware:dhcp-relay-broken-u02:0",
+   "rpi-hardware:dhcp-relay-broken-u01:0",
+   "rpi-hardware:network-booting-u04:0"
+  ],
+  "hit": true,
+  "rank": 1,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q09",
+  "query": "Do I need program_usb_boot_mode=1 to boot my 3B+ from USB?",
+  "kind": "mixed",
+  "model": "rpi-3b-plus",
+  "revision": null,
+  "expected": [
+   "rpi-hardware:raspberry-pi-3b-zero-2-w-u01:0"
+  ],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:special-bootcode-bin-only-boot-mode-u01:0",
+   "rpi-hardware:raspberry-pi-3b-zero-2-w-u01:0",
+   "rpi-hardware:special-bootcode-bin-only-boot-mode-2-u01:0",
+   "rpi-hardware:hardware-compatibility-u01:0",
+   "rpi-hardware:usb-mass-storage-boot-u02:0"
+  ],
+  "hit": true,
+  "rank": 2,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q10",
+  "query": "Does my Pi 3 boot from USB out of the box?",
+  "kind": "ambiguity",
+  "model": null,
+  "revision": null,
+  "expected": [],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:raspberry-pi-2b-3a-3b-cm3-cm3-u03:0",
+   "rpi-hardware:enable-usb-host-boot-mode-with-otp-u06:0",
+   "rpi-hardware:raspberry-pi-3b-zero-2-w-u01:0",
+   "rpi-hardware:enable-usb-host-boot-mode-with-otp-u09:0",
+   "rpi-hardware:boot-from-usb-mass-storage-u03:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q11",
+  "query": "Which header pin is port P102?",
+  "kind": "ambiguity",
+  "model": null,
+  "revision": null,
+  "expected": [],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "uno-r4-wifi-datasheet:qwiic-i2c-connector-u06:0",
+   "arduino-help-center:com-port-number-changes-when-connecting-board-on-u04:0",
+   "uno-r3-datasheet:jdigital-u10:0",
+   "uno-r4-wifi-datasheet:features-u03:0",
+   "uno-r4-wifi-datasheet:esp-header-u02:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ },
+ {
+  "id": "q12",
+  "query": "What does GPIO 22 select in GPIO boot mode?",
+  "kind": "ambiguity",
+  "model": "rpi-3b",
+  "revision": null,
+  "expected": [],
+  "mode": "semantic",
+  "used": "semantic",
+  "ranked": [
+   "rpi-hardware:gpio-boot-mode-u02:0",
+   "rpi-hardware:gpio-boot-mode-u04:0",
+   "rpi-hardware:gpio-boot-mode-u01:0",
+   "rpi-hardware:gpio-boot-mode-u03:0",
+   "rpi-hardware:gpio-boot-mode-u06:0"
+  ],
+  "hit": false,
+  "rank": null,
+  "wrongModel": 0,
+  "lookalike": 0
+ }
+]

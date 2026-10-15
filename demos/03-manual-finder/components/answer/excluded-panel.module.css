@@ -1,0 +1,73 @@
+/* Pressed into the surface: set aside, present, never part of the answer. */
+
+.panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--r-lg);
+  background: var(--base-deep);
+  box-shadow: var(--press);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.icon {
+  margin-top: 2px;
+  color: var(--other);
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.list > li {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.list[hidden] {
+  display: none;
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+
+.where {
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .head > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

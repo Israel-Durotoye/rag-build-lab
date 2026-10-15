@@ -45,7 +45,10 @@ def run(config_path):
             st.session_state.pop('result:'+key,None)
             st.session_state.pop('previous:'+key,None)
         st.session_state['identity:'+key]=identity
-    if kind=='manual': filters['device']=st.selectbox('Device',['','M1','M2','M3'])
+    if kind=='manual':
+        # The device models the manuals themselves cover (document metadata).
+        devices=sorted({d for doc in pipe.documents for d in doc.get('metadata',{}).get('device',[])})
+        filters['device']=st.selectbox('Device',['',*devices])
     if kind=='policy': filters['as_of']=st.date_input('Effective date').isoformat()
     if kind=='spec':
         st.caption('Text retrieval over manually transcribed synthetic pages. No OCR or visual embeddings are claimed.')

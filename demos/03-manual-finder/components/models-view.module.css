@@ -1,0 +1,427 @@
+/* "Which model do I have?": each model a tile raised out of the surface,
+   its short name on a small display; the chosen tile pressed in. The guide
+   below quotes the manuals. */
+
+.alertBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+/* ------------------------------------------------------------ model tiles */
+
+.groups {
+  display: grid;
+  gap: 32px;
+}
+.group {
+  display: grid;
+  gap: 14px;
+}
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 20px;
+}
+.cards > li {
+  display: flex;
+}
+.card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 18px 16px;
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--base);
+  box-shadow: var(--raise);
+  color: var(--ink);
+  text-align: left;
+  transition:
+    box-shadow 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+.card:hover {
+  box-shadow: var(--raise-lg);
+}
+.card:active {
+  transform: translateY(1px);
+}
+.card[aria-pressed="true"] {
+  background: var(--base-deep);
+  box-shadow:
+    var(--press),
+    inset 0 0 0 1px var(--accent-line);
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cardLcd {
+  font-size: 1.08rem;
+}
+.card[aria-pressed="true"] .cardLcd {
+  box-shadow: var(--press-sm), var(--glow);
+}
+.cardName {
+  font-size: 1.04rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+.cardMore {
+  display: grid;
+  gap: 6px;
+}
+.cardAliases {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.cardRevisions {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.cardCounts {
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+/* Each count wraps as a whole: never "42" on one line and "codes" below. */
+.cardCounts > span {
+  white-space: nowrap;
+}
+
+.prompt {
+  margin-top: 30px;
+  color: var(--muted);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ------------------------------------------------------------ the guide */
+
+.guide {
+  display: grid;
+  gap: 28px;
+  margin-top: 36px;
+  scroll-margin-top: calc(var(--top) + 12px);
+}
+.guide:focus {
+  outline: none;
+}
+.guide:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 4px;
+}
+.guideTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: -12px;
+}
+.guideHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 22px;
+}
+.guideLcd {
+  min-width: 112px;
+  font-size: 1.9rem;
+}
+.guideTitle {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.guideTitle h2 {
+  font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.7rem);
+}
+.guideMeta {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+.guideAliases {
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: -8px;
+}
+.work[aria-pressed="true"] {
+  color: var(--accent);
+  box-shadow: var(--press-sm);
+}
+.workPrimary[aria-pressed="true"] {
+  box-shadow: var(--press-sm), var(--glow);
+}
+.notice {
+  margin-top: -16px;
+  min-height: 1px;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+.notice:empty {
+  margin-top: -28px;
+}
+
+.section {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+.sectionHead {
+  display: grid;
+  gap: 4px;
+}
+.sectionHead h3 {
+  font-size: 1.08rem;
+  text-shadow: var(--emboss);
+}
+.passages {
+  display: grid;
+  gap: 12px;
+}
+.passage {
+  display: grid;
+  gap: 10px;
+}
+.citation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.citation cite {
+  font-style: normal;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+.list {
+  display: grid;
+  gap: 10px;
+}
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.itemMain {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ------------------------------------------------------------ look-alikes */
+
+.lookalikes {
+  display: grid;
+  gap: 18px;
+}
+.lookalike {
+  display: grid;
+  gap: 18px;
+  border-radius: var(--r-lg);
+}
+.lookHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lookTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.lookTitle h4 {
+  font-size: 1.04rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+.lookLcd {
+  flex: none;
+}
+.lookPart {
+  display: grid;
+  gap: 10px;
+}
+.lookPart h5 {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.compare thead th {
+  position: static;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+  white-space: normal;
+  min-width: 120px;
+}
+.compare tbody th {
+  position: static;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.compare td {
+  min-width: 170px;
+  color: var(--ink-2);
+}
+/* The second model's rows start below a firmer line. */
+.compare tbody + tbody tr:first-child > * {
+  border-top: 1px solid var(--line-strong);
+}
+.compare tbody:last-child tr:last-child > * {
+  border-bottom: 0;
+}
+.rowText {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+.more {
+  margin-left: -8px;
+}
+.codeStack {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+}
+.codeWords {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.facts {
+  display: grid;
+  gap: 18px;
+}
+.fact {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.factTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.factSources {
+  display: grid;
+  gap: 4px;
+}
+.factSources li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.factModel {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.sideBySide {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.side {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.skeleton {
+  display: grid;
+  gap: 12px;
+}
+.skeleton > :global(.skeleton) {
+  height: 56px;
+}
+
+@media (max-width: 960px) {
+  .pair,
+  .sideBySide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .guide {
+    margin-top: 28px;
+    gap: 24px;
+  }
+  .guideLcd {
+    min-width: 84px;
+    font-size: 1.5rem;
+  }
+  .compare td {
+    min-width: 150px;
+  }
+}
